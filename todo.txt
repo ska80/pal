@@ -1,0 +1,22 @@
+TODO:
+
+- Add display list support.
+
+- Make font rendering use display lists.
+
+- More drawing primitives.
+
+- image-from-array/image-to-array/screen-to-array etc.
+
+- Fix the FPS limiter.
+
+- Check the sanity of vector.lisp and add some operations, esp. bounding-boxes
+  etc.
+
+- Correct aspect ratio when fullscreen on widescreen displays.
+
+- CL native font resource builder.
+
+- Fix with-blend (r g b a), message texts in update only when cursor is set,
+  Lispworks bugs, see that things work on Allegro CL.
+

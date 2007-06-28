@@ -1,0 +1,63 @@
+Release 3
+
+- Renamed GL-PAL system to PAL.
+
+- MESSAGE is now a function that just prints it argument.
+
+- Added DRAW-ARROW.
+
+- Changed TEXT-SIZE to GET-TEXT-SIZE.
+
+- Changed REGISTER-RESOURCE, FREE-RESOURCE, FREE-ALL-RESOURCES, OPEN-PAL and
+  CLOSE-PAL into public generic functions.
+
+- Foreign libraries are now loaded with CFFI:USE-FOREIGN-LIBRARIES. There is now
+  a function PAL:LOAD-FOREIGN-LIBRARIES that can be used to (re)load the shared
+  libs when needed (mainly to be used when delivering images with CLisp)
+
+- Renamed SDL packages name to PAL-FFI and sdl.lisp file to ffi.lisp
+
+- Samples and musics are now wrapped in structures, cleaned up resource
+  handling.
+
+- Replaced WITH-MATRIX and WITH-TRANSLATION with WITH-TRANSFORMATION.
+
+- Added RANDOMLY macro.
+
+
+
+Release 2, May 19 2007
+
+- Tested on Linux/ia32 (Ubuntu 7.04, SBCL 1.05).
+
+- Cleaned up the font reader a bit.
+
+- Pathname fixing; added ext:probe-directory for clisp, pathnamified the
+  application folder/file functions and added basic *nix app-dir support.
+
+- Cleaned up the type declarations a bit.
+
+- MATCH-PRESSED-KEYS is now called TEST-KEYS.
+
+- Fixed V-ANGLE since (atan 0 0) errors with DIVISION-BY-ZERO under (at least)
+  CLisp.
+
+- Some of the examples had floating point errors under CLisp. Fixed with #+CLISP
+  EXT:WITHOUT-FLOATING-POINT-UNDERFLOWS.
+
+- Source directory of PAL is automatically added to the default search paths (to
+  allow PAL to find 'DEFAULT-FONT).
+
+- Added a default font (tag 'PAL::DEFAULT-FONT, mainly for debuggin purposes)
+  and changed the order of font & position args in text functions.
+
+- Removed the font argument from DRAW-FPS. It now uses the default font.
+
+- Added the MESSAGE macro.
+
+
+
+Release 1, March 14 2007
+
+- I changed my original Pixel Art Library from using software rendering to
+  OpenGL. First release.
