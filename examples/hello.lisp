@@ -3,7 +3,7 @@
 
 
 (defun hello-1 ()
-  (pal:with-pal (:paths "path/to/examples/folder/")
+  (pal:with-pal (:paths "/path/to/examples/)
     (let ((font (pal:load-font "georgia")))
       (pal:draw-text "Hello from PAL"
                      (pal:v-round

@@ -17,6 +17,9 @@ TODO:
 
 - CL native font resource builder.
 
-- Fix with-blend (r g b a), message texts in update only when cursor is set,
-  Lispworks bugs, see that things work on Allegro CL.
+- Fix with-blend (r g b a), see that things work on Allegro CL.
+
+- Image loader need a faster way to allocate zeroed foreign vector.
+
+- Make it run on OS X.
 

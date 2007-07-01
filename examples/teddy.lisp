@@ -64,7 +64,7 @@
 
 
 (defun example ()
-  (with-pal (:width 800 :height 600 :fullscreenp nil :fps 60 :paths "./")
+  (with-pal (:width 800 :height 600 :fullscreenp nil :fps 60)
     ;; inits PAL, the args used are the default values.
     ;; NOTE: fix the PATHS to point to the location of the resource files
     ;; PATHS is a pathname or list of pathnames that defines paths that the LOAD-* functions use for finding resources.
@@ -72,7 +72,6 @@
 
     (setf *sprites* nil)
     (set-cursor (tag 'cursor) (v 18 18))
-
     (make-instance 'plane)
     (dotimes (i 20)
       (make-instance 'mutant-teddy
@@ -100,7 +99,7 @@
         (dolist (i *sprites*)
           (draw i)
           #+CLISP (ext:without-floating-point-underflow
-                   (act i))
+                      (act i))
           #-CLISP (act i)))
 
       (test-keys

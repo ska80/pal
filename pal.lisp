@@ -3,7 +3,9 @@
 
 (in-package :pal)
 
-(defparameter *pal-directory* (make-pathname :directory (pathname-directory *load-pathname*)))
+(defparameter *pal-directory* (make-pathname :directory (pathname-directory *load-pathname*)
+                                             :host (pathname-host *load-pathname*)
+                                             :device (pathname-device *load-pathname*)))
 (defvar *messages* nil)
 (defvar *pal-running* nil)
 (defvar *title* "")
@@ -45,7 +47,7 @@
   (when *pal-running*
     (close-pal))
   (pal-ffi:init (logior pal-ffi:+init-video+ pal-ffi:+init-audio+))
-  (pal-ffi:open-audio 22050 pal-ffi:+audio-s16+ 2 1024) ;; 4096
+  (pal-ffi:open-audio 22050 pal-ffi:+audio-s16+ 2 2048)
   (pal-ffi:gl-set-attribute pal-ffi:+gl-depth-size+ 0)
   (pal-ffi:gl-set-attribute pal-ffi:+gl-doublebuffer+ 1)
   (when (cffi:null-pointer-p (pal-ffi::set-video-mode
@@ -89,8 +91,8 @@
         *width* width
         *height* height
         *pal-running* t)
-  (add-path *default-pathname-defaults*)
   (add-path *pal-directory*)
+  (add-path *default-pathname-defaults*)
   (if (listp paths)
       (dolist (p paths)
         (add-path p))
@@ -196,6 +198,15 @@
 
 ;; Screen
 
+(declaim (inline draw-messages))
+(defun draw-messages ()
+  (let ((y 0)
+        (fh (get-font-height)))
+    (declare (type u11 y fh))
+    (dolist (m *messages*)
+      (declare (type simple-string m))
+      (draw-text m (v 0 (incf y fh))))))
+
 (declaim (inline update-screen))
 (defun update-screen ()
   (let ((e (pal-ffi:gl-get-error)))
@@ -210,17 +221,12 @@
     (incf *delay* 2))
   (pal-ffi:delay *delay*)
   (if (or (eq t *cursor*) (eq nil *cursor*))
-      nil
-      (with-transformation ()
-        (with-blend (:mode :blend :r 255 :g 255 :b 255 :a 255)
-          (pal-ffi:gl-load-identity)
-          (draw-image *cursor* (v- (get-mouse-pos) *cursor-offset*))
-          (let ((y 0)
-                (fh (get-font-height)))
-            (declare (type u11 y fh))
-            (dolist (m *messages*)
-              (declare (type simple-string m))
-              (draw-text m (v 0 (incf y fh))))))))
+      (when *messages*
+        (with-default-settings
+          (draw-messages)))
+      (with-default-settings
+        (draw-image *cursor* (v- (get-mouse-pos) *cursor-offset*))
+        (draw-messages)))
   (pal-ffi:gl-swap-buffers))
 
 (declaim (inline get-screen-width))
@@ -362,7 +368,9 @@
                                                    (1- height)))
                                               '(6 7 8 9 10)) 10)))
          (id (cffi:foreign-alloc :uint :count 1))
-         (tdata (cffi:foreign-alloc :uint64 :count (/ (* texture-width texture-height) 2) :initial-element 0)))
+         (tdata (cffi:foreign-alloc :uint32 :count (* texture-width texture-height) :initial-element 0))
+         ;; (tdata (cffi:foreign-alloc :uint64 :count (/ (* texture-width texture-height) 2) :initial-element 0))
+         )
     (do-n (x width y height)
       (multiple-value-bind (r g b a) (surface-get-pixel surface x y)
         (let ((p (the fixnum (+ (* y (the u16 (* (the u11 texture-width) 4))) (the u16 (* 4 x))))))
@@ -637,7 +645,7 @@
         (lines (with-open-file (file (data-path (concatenate 'string font ".fnt")))
                  (loop repeat 4 do (read-line file))
                  (loop for i from 0 to 94 collecting
-                       (substitute #\space #\, (subseq (read-line file) 6) :start 1)))))
+                      (substitute #\space #\, (subseq (read-line file) 6) :start 1)))))
     (dolist (line lines)
       (let ((glyph (glyph-from-line line)))
         (setf (aref glyphs (char-code (glyph-char glyph)))
@@ -676,7 +684,7 @@
                     font
                     (tag 'default-font))))
       (loop for c across text do
-            (draw-glyph c font)))))
+           (draw-glyph c font)))))
 
 (declaim (inline get-font-height))
 (defun get-font-height (&optional font)
@@ -691,8 +699,8 @@
                                                  font
                                                  (tag 'default-font)))))
             (loop for c across text summing
-                  (+ (glyph-width (aref glyphs (char-code c)))
-                     (glyph-xoff (aref glyphs (char-code c))))))
+                 (+ (glyph-width (aref glyphs (char-code c)))
+                    (glyph-xoff (aref glyphs (char-code c))))))
           (pal-ffi:font-height (if font
                                    font
                                    (tag 'default-font)))))
