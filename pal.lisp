@@ -585,23 +585,24 @@
 
 ;;; Samples
 
-(defun load-sample (file &optional (volume 128))
-  "Volume 0-128"
+(defun load-sample (file &optional (volume 255))
+  "Volume 0-255"
   (let ((sample (pal-ffi:load-wav (data-path file))))
-    (pal-ffi:volume-chunk (pal-ffi:sample-chunk sample) volume)
+    (pal-ffi:volume-chunk (pal-ffi:sample-chunk sample) (1+ (truncate volume 2)))
     sample))
 
 (declaim (inline play-sample))
-(defun play-sample (sample &optional (loops 0) (angle 0) (distance 0))
-  "Angle is an integer between 0-360. Distance is an integer between 0-255."
-  (let ((channel (pal-ffi:play-channel -1 (pal-ffi:sample-chunk sample) loops)))
-    (pal-ffi:set-position channel angle distance)
+(defun play-sample (sample &key (loops nil) (angle 0) (volume 255))
+  "Angle is an integer between 0-360. Volume is an integer between 0-255."
+  (let ((channel (pal-ffi:play-channel -1 (pal-ffi:sample-chunk sample) (if (numberp loops)
+                                                                            loops
+                                                                            0))))
+    (pal-ffi:set-position channel angle (- 255 volume))
     channel))
 
 (defun set-sample-volume (sample volume)
-  "Volume 0-128."
-  (pal-ffi:volume-chunk (pal-ffi:sample-chunk sample) volume))
-
+  "Volume 0-255"
+  (pal-ffi:volume-chunk (pal-ffi:sample-chunk sample) (1+ (truncate volume 2))))
 
 
 
@@ -610,14 +611,16 @@
 (defun load-music (file)
   (pal-ffi:load-music (data-path file)))
 
-(defun play-music (music &optional (loops -1) (volume 128))
-  "Volume 0-128, -1 for loops is repeat"
-  (pal-ffi:volume-music volume)
-  (pal-ffi:play-music (pal-ffi:music-music music) loops))
+(defun play-music (music &optional (loops t) (volume 255))
+  "Volume 0-255. Loops is: t = forever, nil = once, number = number of loops"
+  (pal-ffi:volume-music (1+ (truncate volume 2)))
+  (pal-ffi:play-music (pal-ffi:music-music music) (cond ((eq loops t) -1)
+                                                        ((null loops) 0)
+                                                        (t loops))))
 
 (defun set-music-volume (volume)
-  "Volume 0-128"
-  (pal-ffi:volume-music volume))
+  "Volume 0-255"
+  (pal-ffi:volume-music (1+ (truncate volume 2))))
 
 (defun halt-music ()
   (pal-ffi:halt-music))
