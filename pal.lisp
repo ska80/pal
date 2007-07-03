@@ -177,10 +177,10 @@
 (defun get-mouse-y ()
   *mouse-y*)
 
-(defun dispatch-event (&key key-up-fn key-down-fn mouse-motion-fn mouse-button-up-fn mouse-button-down-fn quit-fn)
+(defun dispatch-event (&key key-up-fn key-down-fn mouse-motion-fn quit-fn)
   (block event-loop
     (cffi:with-foreign-object (event :char 100)
-      (do-event event key-up-fn key-down-fn mouse-motion-fn mouse-button-up-fn mouse-button-down-fn quit-fn))))
+      (do-event event key-up-fn key-down-fn mouse-motion-fn quit-fn))))
 
 (defun wait-keypress ()
   (let ((key nil))
@@ -557,9 +557,6 @@
                   (ty (/ (- y dy) (pal-ffi:image-texture-height image))))
              (pal-ffi:gl-tex-coord2f tx ty)
              (pal-ffi:gl-vertex2f x y))))))
-    ((and (listp fill) image)
-     (set-image image)
-     )
     ((eq nil fill)
      (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-color-buffer-bit+ pal-ffi:+gl-current-bit+ pal-ffi:+gl-line-bit+ pal-ffi:+gl-enable-bit+))
      (set-blend-color r g b a)
@@ -578,7 +575,9 @@
      (with-gl pal-ffi:+gl-polygon+
        (dolist (p points)
          (pal-ffi:gl-vertex2f (vx p) (vy p))))
-     (pal-ffi:gl-pop-attrib))))
+     (pal-ffi:gl-pop-attrib))
+    (t
+     (set-image image))))
 
 
 

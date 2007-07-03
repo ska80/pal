@@ -112,7 +112,7 @@
   `(when ,fn
      (funcall ,fn ,@args)))
 
-(defmacro do-event (event key-up-fn key-down-fn mouse-motion-fn mouse-button-up-fn mouse-button-down-fn quit-fn)
+(defmacro do-event (event key-up-fn key-down-fn mouse-motion-fn quit-fn)
   `(loop while (pal-ffi:poll-event ,event)
       do
       (let ((type (cffi:mem-ref ,event :uint8)))
@@ -143,16 +143,18 @@
            (funcall? ,mouse-motion-fn *mouse-x* *mouse-y*))
 
           ((= type pal-ffi:+mouse-button-up-event+)
-           (let ((button (cffi:foreign-slot-value ,event 'pal-ffi:mouse-button-event 'pal-ffi:button)))
-             (setf (gethash (read-from-string (format nil ":key-mouse-~a" button))
+           (let* ((button (cffi:foreign-slot-value ,event 'pal-ffi:mouse-button-event 'pal-ffi:button))
+                  (keysym (read-from-string (format nil ":key-mouse-~a" button))))
+             (setf (gethash keysym
                             *pressed-keys*) nil)
-             (funcall? ,mouse-button-up-fn button)))
+             (funcall? ,key-up-fn keysym)))
 
           ((= type pal-ffi:+mouse-button-down-event+)
-           (let ((button (cffi:foreign-slot-value ,event 'pal-ffi:mouse-button-event 'pal-ffi:button) ))
-             (setf (gethash (read-from-string (format nil ":key-mouse-~a" button))
+           (let* ((button (cffi:foreign-slot-value ,event 'pal-ffi:mouse-button-event 'pal-ffi:button))
+                 (keysym (read-from-string (format nil ":key-mouse-~a" button))))
+             (setf (gethash keysym
                             *pressed-keys*) t)
-             (funcall? ,mouse-button-down-fn button)))
+             (funcall? ,key-down-fn keysym)))
 
           ((= type pal-ffi:+quit-event+)
            (if ,quit-fn
@@ -161,12 +163,12 @@
            )))))
 
 
-(defmacro event-loop ((&key key-up-fn key-down-fn mouse-motion-fn mouse-button-up-fn mouse-button-down-fn quit-fn) &body redraw)
+(defmacro event-loop ((&key key-up-fn key-down-fn mouse-motion-fn quit-fn) &body redraw)
   (let ((event (gensym)))
     `(block event-loop
        (cffi:with-foreign-object (,event :char 1000)
          (loop
-            (do-event ,event ,key-up-fn ,key-down-fn ,mouse-motion-fn ,mouse-button-up-fn ,mouse-button-down-fn ,quit-fn)
+            (do-event ,event ,key-up-fn ,key-down-fn ,mouse-motion-fn ,quit-fn)
             ,@redraw
             (update-screen))))))
 
