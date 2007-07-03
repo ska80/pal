@@ -1,4 +1,14 @@
-Release 3
+Release 3, July 3 2007
+
+- Changed some of the parameters to sound functions. Volume is now defined as a
+  value between 0 - 255 instead of 0 - 128.
+
+- Removed the MOUSE-BUTTON-DOWN/UP-FNs from event handling functions. Use
+  KEY-*-FNs instead.
+
+- Loading bitmaps should be a lot faster now.
+
+- Fixed the Lispworks bugs.
 
 - Renamed GL-PAL system to PAL.
 
