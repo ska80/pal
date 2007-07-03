@@ -396,6 +396,7 @@
                                       :width (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:w)
                                       :height (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:h))))
       (setf *current-image* image)
+      (cffi:foreign-free id)
       (pal-ffi:register-resource image))))
 
 (defun load-image (file &optional (smooth-p nil))
