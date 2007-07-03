@@ -7,6 +7,8 @@
            #:make-font
            #:+gl-scissor-test+
            #:+gl-points+
+           #:free
+           #:calloc
            #:music-music
            #:register-resource
            #:sample-chunk
@@ -349,7 +351,7 @@
   (:export #:open-pal
            #:with-pal
            #:close-pal
-           #:get-info
+           #:get-gl-info
            #:load-foreign-libraries
            #:register-resource
            #:free-resource
@@ -367,7 +369,6 @@
            #:get-application-file
            #:data-path
            #:with-resource
-           #:with-blend
            #:with-clipping
 
            #:randomly
@@ -385,9 +386,7 @@
            #:get-mouse-x
            #:get-mouse-y
 
-           #:update-screen
            #:clear-screen
-           #:clear-depth-buffer
            #:get-screen-width
            #:get-screen-height
            #:set-cursor
@@ -401,6 +400,7 @@
            #:set-blend-mode
            #:reset-blend-mode
            #:set-blend-color
+           #:with-blend
 
            #:load-image
            #:image-width
@@ -409,7 +409,7 @@
            #:draw-rectangle
            #:draw-point
            #:draw-line
-           #:draw-arrow           
+           #:draw-arrow
            #:draw-image
            #:draw-image-from
            #:draw-quad

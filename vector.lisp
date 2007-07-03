@@ -3,7 +3,8 @@
 
 (in-package :pal)
 
-(deftype component () 'single-float)
+#+CL-HAS-FULL-NUMERIC-TOWER-DAMMIT (deftype component () 'number)
+#-CL-HAS-FULL-NUMERIC-TOWER-DAMMIT (deftype component () 'single-float)
 
 (defstruct (vec (:conc-name v))
   (x 0 :type component) (y 0 :type component))

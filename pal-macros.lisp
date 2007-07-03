@@ -177,3 +177,10 @@
      (unwind-protect
           (progn ,@body)
        (close-pal))))
+
+
+(defmacro with-foreign-vector ((chunk n size) &body body)
+  `(let ((,chunk (pal-ffi:calloc ,n ,size)))
+     (unwind-protect
+          ,@body
+       (pal-ffi:free ,chunk))))

@@ -19,7 +19,5 @@ TODO:
 
 - Fix with-blend (r g b a), see that things work on Allegro CL.
 
-- Image loader need a faster way to allocate zeroed foreign vector.
-
 - Make it run on OS X.
 
