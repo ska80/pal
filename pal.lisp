@@ -244,7 +244,10 @@
 (declaim (inline clear-screen))
 (defun clear-screen (r g b)
   (declare (type u8 r g b))
-  (pal-ffi:gl-clear-color (/ r 255f0) (/ g 255f0) (/ b 255f0) 255f0)
+  (pal-ffi:gl-clear-color (coerce (/ r 255f0) 'single-float)
+                          (coerce (/ g 255f0) 'single-float)
+                          (coerce (/ b 255f0) 'single-float)
+                          1f0)
   (pal-ffi:gl-clear pal-ffi:+gl-color-buffer-bit+))
 
 (defun set-mouse-pos (x y)
