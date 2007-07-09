@@ -15,6 +15,8 @@
            #:load-foreign-libraries
            #:sample
            #:music
+           #:resource
+           #:resource-p
            #:sample-p
            #:music-p
            #:gl-get-error
@@ -345,7 +347,7 @@
   (:use :common-lisp)
   (:import-from :pal-ffi
                 #:free-resource #:register-resource #:load-foreign-libraries
-                #:image-p #:image #:font #:font-p #:sample #:music #:sample-p #:music-p
+                #:image-p #:image #:font #:font-p #:sample #:music #:sample-p #:music-p #:resource #:resource-p
                 #:image-width #:image-height
                 #:u8 #:u11 #:u16)
   (:export #:open-pal
@@ -431,7 +433,7 @@
            #:halt-music
 
            #:v #:vec #:copy-vec #:angle-v #:v-angle #:vx #:vy
-           #:v= #:v-round #:v-random
+           #:v= #:v-round #:v-floor #:v-random
            #:v+ #:v+!  #:v- #:v-! #:v* #:v*! #:v/ #:v/! #:v-max #:v-min #:v-rotate
            #:v-dot #:v-magnitude #:v-normalize #:v-distance
            #:v-truncate #:v-direction

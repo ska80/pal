@@ -22,11 +22,14 @@
   (define-tags default-font (load-font "default-font")))
 
 (defun tag (name)
+  (declare (type symbol name))
   (let ((resource (gethash name *tags*)))
     (if resource
         (if (cdr resource)
-            (cdr resource)
-            (setf (cdr resource) (funcall (car resource))))
+            (the resource (cdr resource))
+            (let ((r (funcall (car resource))))
+              (assert (resource-p r))
+              (the resource (setf (cdr resource) r))))
         (error "Named resource ~a not found" name))))
 
 (defmacro with-resource ((resource init-form) &body body)
@@ -151,7 +154,7 @@
 
           ((= type pal-ffi:+mouse-button-down-event+)
            (let* ((button (cffi:foreign-slot-value ,event 'pal-ffi:mouse-button-event 'pal-ffi:button))
-                 (keysym (read-from-string (format nil ":key-mouse-~a" button))))
+                  (keysym (read-from-string (format nil ":key-mouse-~a" button))))
              (setf (gethash keysym
                             *pressed-keys*) t)
              (funcall? ,key-down-fn keysym)))

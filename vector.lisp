@@ -53,6 +53,12 @@
   (declare (type vec v))
   (v (round (vx v)) (round (vy v))))
 
+(declaim (inline v-floor))
+(defun v-floor (v)
+  (declare (type vec v))
+  (v (floor (vx v)) (floor (vy v))))
+
+
 (declaim (inline v=))
 (defun v= (a b)
   (and (= (vx a) (vx b))

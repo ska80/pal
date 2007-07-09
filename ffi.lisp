@@ -5,23 +5,23 @@
 
 
 (cffi:define-foreign-library sdl
-    (:windows "SDL")
-  (:linux "libSDL-1.2.so.0"))
+  (:windows "SDL")
+  (:unix (:or "libSDL-1.2.so.0" "libSDL-1.2.so")))
 
 (cffi:define-foreign-library sdl-mixer
-    (:windows "SDL_mixer")
-  (:linux "libSDL_mixer-1.2.so.0"))
+  (:windows "SDL_mixer")
+  (:unix (:or "libSDL_mixer-1.2.so.0" "libSDL_mixer-1.2.so")))
 
 (cffi:define-foreign-library sdl-image
-    (:windows "SDL_image")
-  (:linux "libSDL_image-1.2.so.0"))
+  (:windows "SDL_image")
+  (:unix (:or "libSDL_image-1.2.so.0" "libSDL_image-1.2.so")))
 
 (cffi:define-foreign-library opengl
-    (:windows "opengl32.dll")
-  (:linux "libGL.so"))
+  (:windows "opengl32.dll")
+  (:unix (:or "libGL.so")))
 
 #+win32 (cffi:define-foreign-library shell32
-            (:windows "shell32.dll"))
+          (:windows "shell32.dll"))
 
 (defun load-foreign-libraries ()
   (cffi:use-foreign-library sdl)
@@ -72,19 +72,19 @@
 
 
 (cffi:defcstruct rectangle
-    (x :short)
+  (x :short)
   (y :short)
   (w :uint16)
   (h :uint16))
 
 (cffi:defcstruct color
-    (r :uint8)
+  (r :uint8)
   (g :uint8)
   (b :uint8)
   (unused :uint8))
 
 (cffi:defcstruct surface
-    (flags :uint)
+  (flags :uint)
   (pixelformat :pointer)
   (w :int)
   (h :int)
@@ -100,7 +100,7 @@
   (refcount :int))
 
 (cffi:defcstruct pixelformat
-    (palette :pointer)
+  (palette :pointer)
   (BitsPerPixel :uint8)
   (BytesPerPixel :uint8)
   (Rloss :uint8)
@@ -119,40 +119,40 @@
   (alpha :uint8))
 
 (cffi:defcstruct keysym
-    (scancode :uint8)
+  (scancode :uint8)
   (sym :int)
   (mod :int)
   (unicode :uint16))
 
 (cffi:defcstruct keyboard-event
-    (type :uint8)
+  (type :uint8)
   (state :uint8)
   (keysym keysym))
 
 (cffi:defcstruct mouse-button-event
-    (type :uint8)
+  (type :uint8)
   (which :uint8)
   (button :uint8)
   (state :uint8)
   (x :uint16) (y :uint16))
 
 (cffi:defcstruct mouse-motion-event
-    (type :uint8)
+  (type :uint8)
   (which :uint8)
   (state :uint8)
   (x :uint16) (y :uint16)
   (xrel :int16) (yrel :int16))
 
 (cffi:defcstruct quit-event
-    (type :uint8))
+  (type :uint8))
 
 (cffi:defcstruct active-event
-    (type :uint8)
+  (type :uint8)
   (gain :uint8)
   (state :uint8))
 
 (cffi:defcstruct resize-event
-    (type :uint8)
+  (type :uint8)
   (w :int) (h :int))
 
 
@@ -169,7 +169,7 @@
 (defconstant +expose-event+ 17)
 
 (cffi:defcenum sdl-key
-    (:key-unknown 0)
+  (:key-unknown 0)
   (:key-first 0)
   (:key-backspace 8)
   (:key-tab 9)
@@ -405,7 +405,7 @@
   :key-last)
 
 (cffi:defcenum sdl-mod
-    (:mod-none #x0000)
+  (:mod-none #x0000)
   (:mod-lshift #x0001)
   (:mod-rshift #x0002)
   (:mod-lctrl #x0040)
@@ -446,11 +446,21 @@
 (defstruct sample
   chunk)
 
+
+(deftype resource () '(or music sample image font))
+
+(defun resource-p (object)
+  (typep object 'resource))
+
+
+
 (defgeneric register-resource (resource))
 (defgeneric free-resource (resource))
 (defgeneric free-all-resources ())
 
+
 (defmethod register-resource (resource)
+  (assert (resource-p resource))
   (push resource *resources*)
   resource)
 
@@ -472,8 +482,7 @@
 (defmethod free-all-resources ()
   (dolist (r *resources*)
     (free-resource r))
-  (when *resources*
-    (error "Allocated resources left: ~a" *resources*)))
+  (assert (null *resources*)))
 
 
 

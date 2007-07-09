@@ -1,3 +1,10 @@
+;; are the texture options sane for draw-poly etc.
+;; tags-resources-free?
+;; animations
+;; circle/box/point overlap functions
+;; resources should check for void when freeing
+;; sdl window not on top?
+
 (declaim (optimize (speed 3)
                    (safety 3)))
 
@@ -136,7 +143,7 @@
   (if #-:clisp (probe-file path)
       #+:clisp (ext:probe-directory path)
       (pushnew path *data-paths*)
-      (warn "Illegal data path: ~a" path)))
+      (format *debug-io* "Illegal data path: ~a" path)))
 
 (defun data-path (file)
   (let ((result nil))
