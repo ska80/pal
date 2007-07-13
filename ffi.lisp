@@ -464,6 +464,9 @@
   (push resource *resources*)
   resource)
 
+(defmethod free-resource :before (resource)
+  (assert (typep resource 'resource)))
+
 (defmethod free-resource :after (resource)
   (setf *resources* (remove resource *resources*)))
 
@@ -860,4 +863,6 @@
 (cffi:defcfun "calloc" :pointer (nelem :uint) (elsize :uint))
 (cffi:defcfun "free" :void (ptr :pointer))
 
-
+;; SDL_SysWMinfo wmInfo;
+;; SDL_GetWMInfo(&wmInfo);
+;; HWND hWnd = wmInfo.window;

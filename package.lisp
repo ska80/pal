@@ -371,7 +371,6 @@
            #:get-application-file
            #:data-path
            #:with-resource
-           #:with-clipping
 
            #:randomly
            #:relt
@@ -403,6 +402,10 @@
            #:reset-blend-mode
            #:set-blend-color
            #:with-blend
+           #:with-clipping
+           #:push-clip
+           #:pop-clip
+           #:update-screen
 
            #:load-image
            #:image-width

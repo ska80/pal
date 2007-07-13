@@ -41,17 +41,18 @@
 
 (defmacro with-default-settings (&body body)
   `(with-transformation ()
-     (with-blend (:mode :blend :r 255 :g 255 :b 255 :a 255)
+     (with-blend (:mode :blend :color '(255 255 255 255))
        (pal-ffi:gl-load-identity)
        ,@body)))
 
-(defmacro with-blend ((&key (mode t) r g b a) &body body)
+
+(defmacro with-blend ((&key (mode t) color) &body body)
   `(progn
      (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-color-buffer-bit+ pal-ffi:+gl-current-bit+ pal-ffi:+gl-enable-bit+))
      ,(unless (eq mode t)
               `(set-blend-mode ,mode))
-     ,(when (and r g b a)
-            `(set-blend-color ,r ,g ,b ,a))
+     ,(when color
+            `(set-blend-color (first ,color) (second ,color) (third ,color) (fourth ,color)))
      ,@body
      (pal-ffi:gl-pop-attrib)))
 
@@ -112,8 +113,10 @@
                args)))
 
 (defmacro funcall? (fn &rest args)
-  `(when ,fn
-     (funcall ,fn ,@args)))
+  (if (null fn)
+      nil
+      `(funcall ,fn ,@args)))
+
 
 (defmacro do-event (event key-up-fn key-down-fn mouse-motion-fn quit-fn)
   `(loop while (pal-ffi:poll-event ,event)
@@ -169,7 +172,7 @@
 (defmacro event-loop ((&key key-up-fn key-down-fn mouse-motion-fn quit-fn) &body redraw)
   (let ((event (gensym)))
     `(block event-loop
-       (cffi:with-foreign-object (,event :char 1000)
+       (cffi:with-foreign-object (,event :char 500)
          (loop
             (do-event ,event ,key-up-fn ,key-down-fn ,mouse-motion-fn ,quit-fn)
             ,@redraw

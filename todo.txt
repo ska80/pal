@@ -17,8 +17,10 @@ TODO:
 
 - CL native font resource builder.
 
-- Fix with-blend (r g b a), see that things work on Allegro CL.
+- Fix with-blend (r g b a).
 
 - Make it run on OS X.
 
 - TrueType font support.
+
+- Simple animation system for images.
