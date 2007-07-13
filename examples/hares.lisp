@@ -32,8 +32,10 @@
   (set-blend-color (r-of s) (g-of s) (b-of s) 255)
   (draw-image (image-of s)
               (pos-of s)
-              (angle-of s)
-              (scale-of s)))
+              :halign :middle
+              :valign :middle
+              :angle (angle-of s)
+              :scale (scale-of s)))
 
 (defmethod act ((s sprite))
   (setf (angle-of s) (mod (+ (angle-of s) 1f0) 360))
@@ -52,7 +54,7 @@
 
 
 (defun example ()
-  (with-pal (:width 800 :height 600 :fullscreenp nil :fps 6000)
+  (with-pal (:width 800 :height 600 :fullscreenp nil :fps 6000 :paths (merge-pathnames "examples/" pal::*pal-directory*))
     (setf *sprites* nil)
     (set-cursor nil)
 
@@ -70,11 +72,11 @@
                      :angle (random 360f0)))
 
     (event-loop ()
-      (draw-image-from (tag 'bg)
-                       (v 0 0)
-                       (v 0 0)
-                       (get-screen-width)
-                       (get-screen-height))
+      (draw-image* (tag 'bg)
+                   (v 0 0)
+                   (v 0 0)
+                   (get-screen-width)
+                   (get-screen-height))
       (with-blend (:mode *blend-mode*)
         (dolist (i *sprites*)
           (draw i)

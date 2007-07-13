@@ -1,10 +1,10 @@
-;; Urgent:
+;; Notes:
 ;; tags-resources-free?
 ;; circle/box/point overlap functions, fast v-dist
 ;; resources should check for void when freeing
-;; sdl window not always on top on windows?
 ;; do absolute paths for data-path work?
-;; draw-image aligns, draw-quad! abs.
+;; draw-image* aligns & scale, angle?
+;; draw-polygon*, draw-circle
 
 (declaim (optimize (speed 3)
                    (safety 3)))
@@ -416,21 +416,30 @@
     (pal-ffi::free-surface surface)
     image))
 
-(defun draw-image (image pos &key angle scale (valign :left) (halign :top))
+(defun draw-image (image pos &key angle scale valign halign)
   (declare (type image image) (type vec pos) (type (or boolean single-float) angle scale) (type symbol halign valign))
   (set-image image)
   (let ((width (image-width image))
         (height (image-height image))
         (tx2 (pal-ffi:image-tx2 image))
         (ty2 (pal-ffi:image-ty2 image)))
-    (if angle
+    (if (or angle scale valign halign)
         (with-transformation ()
           (translate pos)
-          (rotate angle)
+          (when angle
+            (rotate angle))
           (when scale
-            (scale scale scale))
-          (let ((x (- (/ (image-width image) 2f0)))
-                (y (- (/ (image-height image) 2f0))))
+            (scale scale scale)) ;; :-)
+          (let ((x (case halign
+                     (:right (coerce (- width) 'single-float))
+                     (:left 0f0)
+                     (:middle (coerce (- (/ width 2)) 'single-float))
+                     (otherwise 0f0)))
+                (y (case valign
+                     (:bottom (coerce (- height) 'single-float))
+                     (:top 0f0)
+                     (:middle (coerce (- (/ height 2)) 'single-float))
+                     (otherwise 0f0))))
             (with-gl pal-ffi:+gl-quads+
               (pal-ffi:gl-tex-coord2f 0f0 0f0)
               (pal-ffi:gl-vertex2f x y)
@@ -440,32 +449,21 @@
               (pal-ffi:gl-vertex2f (+ x width) (+ y height))
               (pal-ffi:gl-tex-coord2f 0f0 ty2)
               (pal-ffi:gl-vertex2f x (+ y height)))))
-        (with-gl pal-ffi:+gl-quads+
-          (pal-ffi:gl-tex-coord2f 0f0 0f0)
-          (pal-ffi:gl-vertex2f (vx pos) (vy pos))
-          (pal-ffi:gl-tex-coord2f tx2 0f0)
-          (pal-ffi:gl-vertex2f (+ (vx pos) width) (vy pos))
-          (pal-ffi:gl-tex-coord2f tx2 ty2)
-          (pal-ffi:gl-vertex2f (+ (vx pos) width) (+ (vy pos) height))
-          (pal-ffi:gl-tex-coord2f 0f0 ty2)
-          (pal-ffi:gl-vertex2f (vx pos) (+ (vy pos) height))))))
+        (let ((x (vx pos))
+              (y (vy pos)))
+          (with-gl pal-ffi:+gl-quads+
+            (pal-ffi:gl-tex-coord2f 0f0 0f0)
+            (pal-ffi:gl-vertex2f x y)
+            (pal-ffi:gl-tex-coord2f tx2 0f0)
+            (pal-ffi:gl-vertex2f (+ x width) y)
+            (pal-ffi:gl-tex-coord2f tx2 ty2)
+            (pal-ffi:gl-vertex2f (+ x width) (+ y height))
+            (pal-ffi:gl-tex-coord2f 0f0 ty2)
+            (pal-ffi:gl-vertex2f x (+ y height)))))))
 
-(defun draw-quad (image a b c d &key absolutep)
-  (declare (type image image) (type vec a b c d))
-  (set-image image)
-  (let ((tx2 (pal-ffi:image-tx2 image))
-        (ty2 (pal-ffi:image-ty2 image)))
-    (with-gl pal-ffi:+gl-quads+
-      (pal-ffi:gl-tex-coord2f 0f0 0f0)
-      (pal-ffi:gl-vertex2f (vx a) (vy a))
-      (pal-ffi:gl-tex-coord2f tx2 0f0)
-      (pal-ffi:gl-vertex2f (vx b) (vy b))
-      (pal-ffi:gl-tex-coord2f tx2 ty2)
-      (pal-ffi:gl-vertex2f (vx c) (vy c))
-      (pal-ffi:gl-tex-coord2f 0f0 ty2)
-      (pal-ffi:gl-vertex2f (vx d) (vy d)))))
 
-(defun draw-image-from (image from-pos to-pos width height)
+
+(defun draw-image* (image from-pos to-pos width height)
   (declare (type image image) (type vec from-pos to-pos) (type u11 width height))
   (set-image image)
   (let* ((vx (vx from-pos))
@@ -534,15 +532,21 @@
     (pal-ffi:gl-vertex2f (vx pos) (vy pos)))
   (pal-ffi:gl-pop-attrib))
 
-(defun draw-rectangle (pos width height r g b a &key (filledp t) (size 1f0))
-  (declare (type vec pos) (type float size) (type u11 width height) (type u8 r g b a) (type boolean filledp))
+(defun draw-rectangle (pos width height r g b a &key (fill t) (size 1f0) absolutep)
+  (declare (type vec pos) (type boolean absolutep) (type float size) (type u11 width height) (type u8 r g b a) (type (or image boolean) fill))
   (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-color-buffer-bit+ pal-ffi:+gl-current-bit+ pal-ffi:+gl-line-bit+ pal-ffi:+gl-enable-bit+))
-  (pal-ffi:gl-disable pal-ffi:+gl-texture-2d+)
-  (set-blend-color r g b a)
   (cond
-    (filledp
-     (pal-ffi:gl-rectf (vx pos) (vy pos) (+ (vx pos) width) (+ (vy pos) height)))
-    (t
+    ((image-p fill)
+     (draw-polygon (list pos
+                         (v+ pos (v width 0))
+                         (v+ pos (v width height))
+                         (v+ pos (v 0 height)))
+                   0 0 0 0
+                   :fill fill
+                   :absolutep absolutep))
+    ((eq nil fill)
+     (pal-ffi:gl-disable pal-ffi:+gl-texture-2d+)
+     (set-blend-color r g b a)
      (pal-ffi:gl-enable pal-ffi:+gl-line-smooth+)
      (pal-ffi:gl-line-width size)
      (with-gl pal-ffi:+gl-line-loop+
@@ -552,10 +556,14 @@
        (pal-ffi:gl-vertex2f (+ (vx pos) width) (+ (vy pos) height))
        (pal-ffi:gl-vertex2f (+ (vx pos) width) (+ (vy pos) height))
        (pal-ffi:gl-vertex2f (vx pos) (+ (vy pos) height))
-       (pal-ffi:gl-vertex2f (vx pos) (+ (vy pos) height)))))
+       (pal-ffi:gl-vertex2f (vx pos) (+ (vy pos) height))))
+    (t
+     (pal-ffi:gl-disable pal-ffi:+gl-texture-2d+)
+     (set-blend-color r g b a)
+     (pal-ffi:gl-rectf (vx pos) (vy pos) (+ (vx pos) width) (+ (vy pos) height))))
   (pal-ffi:gl-pop-attrib))
 
-(defun draw-polygon (points r g b a &key fill absolutep (size 1f0))
+(defun draw-polygon (points r g b a &key (fill t) absolutep (size 1f0))
   (declare (type list points) (type u8 r g b a) (type (or image boolean) fill))
   (cond
     ((image-p fill)
@@ -648,8 +656,7 @@
 
 (defstruct glyph
   (char #\space :type character)
-  (x 0 :type u11)
-  (y 0 :type u11)
+  (pos (v 0 0) :type vec)
   (width 0 :type u11)
   (height 0 :type u11)
   (xoff 0 :type fixnum)
@@ -657,7 +664,7 @@
 
 
 (defun load-font (font)
-  (let ((glyphs (make-array 255 :initial-element (make-glyph :x 0 :y 0 :width 1 :height 1 :xoff 0 :dl 0) :element-type 'glyph))
+  (let ((glyphs (make-array 255 :initial-element (make-glyph :width 1 :height 1 :xoff 0 :dl 0) :element-type 'glyph))
         (lines (with-open-file (file (data-path (concatenate 'string font ".fnt")))
                  (loop repeat 4 do (read-line file))
                  (loop for i from 0 to 94 collecting
@@ -675,32 +682,29 @@
         (coords (read-from-string (concatenate 'string "(" (subseq line 2) ")"))))
     (make-glyph :char char
                 :dl 0
-                :x (first coords)
-                :y (second coords)
+                :pos (v (first coords)
+                        (second coords))
                 :width (third coords)
                 :height (fourth coords)
                 :xoff (sixth coords))))
 
-(defun draw-glyph (char font)
-  (declare (type font font) (type character char))
-  (let ((image (pal-ffi:font-image font))
-        (g (aref (pal-ffi:font-glyphs font) (char-code char))))
-    (draw-image-from image
-                     (v (glyph-x g)
-                        (glyph-y g))
-                     (v 0 0)
-                     (glyph-width g)
-                     (glyph-height g))
-    (pal-ffi:gl-translatef (coerce (+ (glyph-width g) (glyph-xoff g)) 'single-float) 0f0 0f0)))
-
 (defun draw-text (text pos &optional font)
   (declare (type vec pos) (type simple-string text) (type (or font boolean) font))
   (with-transformation (:pos pos)
-    (let ((font (if font
-                    font
-                    (tag 'default-font))))
-      (loop for c across text do
-           (draw-glyph c font)))))
+    (let* ((font (if font
+                     font
+                     (tag 'default-font)))
+           (origo (v 0 0))
+           (image (pal-ffi:font-image font)))
+      (declare (type image image) (type vec origo))
+      (loop for char across text do
+           (let ((g (aref (pal-ffi:font-glyphs font) (char-code char))))
+             (draw-image* image
+                          (glyph-pos g)
+                          origo
+                          (glyph-width g)
+                          (glyph-height g))
+             (pal-ffi:gl-translatef (coerce (+ (glyph-width g) (glyph-xoff g)) 'single-float) 0f0 0f0))))))
 
 (declaim (inline get-font-height))
 (defun get-font-height (&optional font)

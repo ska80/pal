@@ -2,25 +2,40 @@ TODO:
 
 - Add display list support.
 
-- Make font rendering use display lists.
+- Font rendering is too slow, maybe use display lists for that?
 
 - More drawing primitives.
 
 - image-from-array/image-to-array/screen-to-array etc.
 
-- Fix the FPS limiter.
+- Fix the FPS limiter, the results could be a lot smoother.
 
 - Check the sanity of vector.lisp and add some operations, esp. bounding-boxes
   etc.
 
 - Correct aspect ratio when fullscreen on widescreen displays.
 
-- CL native font resource builder.
+- I would really like to see it run on OS X.
 
-- Fix with-blend (r g b a).
+- Simple and transparent animation system for images.
 
-- Make it run on OS X.
+- Using fullscreen mode on Windows some times results in screen flickering
+  between desktop and PAL screen, usually fixed by alt-tabbing. Should be fixed.
 
-- TrueType font support.
+- The problems with Linux and some gfx drivers should be somehow fixed.
 
-- Simple animation system for images.
+- Documentation and tutorials.
+
+
+
+As separate projects on top of PAL:
+
+- Native CL font resource builder
+
+- TTF support
+
+- GUI
+
+- Some sort of sprite library?
+
+- Network code?

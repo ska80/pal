@@ -2,7 +2,10 @@
 (in-package #:asdf)
 
 (defsystem pal
-    :components
+  :description "Pixel Art Library"
+  :author "Tomi Neste"
+  :license "MIT"
+  :components
   ((:file "ffi"
           :depends-on ("package"))
    (:file "vector"

@@ -3,17 +3,22 @@
 
 
 (defun hello-1 ()
-  (pal:with-pal (:paths "/path/to/examples/")
+  (pal:with-pal (:title "Hello!" :paths (merge-pathnames "examples/" pal::*pal-directory*))
     (let ((font (pal:load-font "georgia")))
-      (pal:draw-text "Hello from PAL"
-                     (pal:v-round
-                      (pal:v (/ (- (pal:get-screen-width)
-                                   (pal:get-text-size "Hello from PAL" font))
-                                2)
-                             (/ (- (pal:get-screen-height)
-                                   (pal:get-font-height font))
-                                2)))
-                     font))
+      (loop for y from 0 to 300 by 2 do
+           (pal:draw-line (pal:v 0 (* y 2)) (pal:v 800 (* y 2))
+                          50 50 255 (truncate y 2)))
+      (let ((midpoint (pal:v-round
+                       (pal:v (/ (- (pal:get-screen-width)
+                                    (pal:get-text-size "Hello from PAL" font))
+                                 2)
+                              (/ (- (pal:get-screen-height)
+                                    (pal:get-font-height font))
+                                 2)))))
+        (pal:set-blend-color 0 0 0 255)
+        (pal:draw-text "Hello from PAL" (pal:v+ midpoint (pal:v 5 5)) font)
+        (pal:reset-blend-mode)
+        (pal:draw-text "Hello from PAL" midpoint font)))
     (pal:wait-keypress)))
 
 ;; (hello-1)

@@ -22,6 +22,7 @@
 (defclass sprite ()
   ((pos :accessor pos-of :initarg :pos :initform (v 0 0))
    (vel :accessor vel-of :initarg :vel :initform (v 0 0))
+   (alt :accessor alt-of :initarg :alt :initform 10)
    (image :accessor image-of :initarg :image)
    (angle :accessor angle-of :initarg :angle :initform 0f0)))
 
@@ -36,7 +37,9 @@
 (defmethod draw ((s sprite))
   (draw-image (image-of s)
               (pos-of s)
-              (angle-of s)))
+              :valign :middle
+              :halign :middle
+              :angle (angle-of s)))
 
 
 
@@ -64,15 +67,19 @@
 
 
 (defun example ()
-  (with-pal (:width 800 :height 600 :fullscreenp nil :fps 60)
+  (with-pal (:width 800 :height 600 :fullscreenp nil :fps 60 :paths (merge-pathnames "examples/" pal::*pal-directory*))
     ;; inits PAL, the args used are the default values.
-    ;; NOTE: fix the PATHS to point to the location of the resource files
-    ;; PATHS is a pathname or list of pathnames that defines paths that the LOAD-* functions use for finding resources.
+    ;; PATHS is a pathname or list of pathnames that PAL uses to find the resource files loaded with LOAD-* functions.
+    ;; By default PATHS contains the PAL source directory and value of *default-pathname-defaults*
     ;; only call PAL functions (with the expection of DEFINE-TAGS forms) inside WITH-PAL or between OPEN-PAL and CLOSE-PAL
 
     (setf *sprites* nil)
+
+    ;; Hide the mouse cursor and use cursor.png instead. 18,18 is the offset ("hotspot") for the cursor image
+    ;; Other possible options to cursor are: t - show the default cursor, nil - hide all cursors
     (set-cursor (tag 'cursor) (v 18 18))
-    (make-instance 'plane)
+
+    (make-instance 'plane :alt 20)
     (dotimes (i 20)
       (make-instance 'mutant-teddy
                      :pos (v (random (get-screen-width))
@@ -82,35 +89,47 @@
 
     (event-loop ()
       ;; simple event loop, no mouse-move, key-down etc. handlers defined, we'll handle input explicitly with TEST-KEYS.
-      ;; the default key-down handler quits the event-loop when ESC is pressed.
-      ;; to define e.g. a key-handler use a form like (event-loop (:key-down-handler (lambda (key) ...)) ...)
+      ;; The default key-down handler quits the event-loop when ESC is pressed, if you define your own key-down-handler
+      ;; don't forget to make sure there is a way to quit pal (especially when in fullscreen).
+      ;; to define e.g. a key-handler use a form like (event-loop (:key-down-fn (lambda (key) ...)) ...)
       ;; you can quit the event loop with (return-from event-loop)
 
       ;; first, draw a scrolling tiled background
-      (draw-image-from (tag 'tile)
-                       (v 0 0)
-                       (v 0 (- *y-scroll* 64))
-                       (get-screen-width)
-                       (+ (get-screen-height) 64))
+      (draw-image* (tag 'tile)
+                   (v 0 0)
+                   (v 0 (- *y-scroll* 64))
+                   (get-screen-width)
+                   (+ (get-screen-height) 64))
       (setf *y-scroll* (mod (+ *y-scroll* 1) 64))
 
-      ;; then the sprites
+      ;; then the sprites, first the shadows
+      ;; sorting the sprites and their shadows according to their altitude is left as an exercise to the reader
+
+      (with-blend (:color '(0 0 0 128))
+        (dolist (i *sprites*)
+          (with-transformation (:pos (v (alt-of i) (alt-of i)))
+            (draw i))))
+
       (with-blend (:mode *blend-mode*)
         (dolist (i *sprites*)
           (draw i)
+
+          ;; Let's do this for CLisp or we might a get nasty floating-point-undereflow error in the vector operations.
           #+CLISP (ext:without-floating-point-underflow
                       (act i))
           #-CLISP (act i)))
 
+      ;; TEST-KEYS is used to check if some key is currently pressed, _all_ the matching forms are evaluated.
       (test-keys
         (:key-1 (setf *blend-mode* nil)
                 (message *blend-mode*))
         (:key-2 (setf *blend-mode* :blend)
                 (message *blend-mode*))
-        (:key-3 (setf *blend-mode* :additive)
-                (message *blend-mode*)))
+        ;; We can also test for several keys at once:
+        ((:key-3 :key-space :key-mouse-1) (setf *blend-mode* :additive)
+         (message *blend-mode*)))
 
-      (draw-fps)
+      (draw-fps) ;; Draw the frames/second counter to the top left corner.
       (draw-text "Press key to select blend-mode:" (v 200 (* 0 (get-font-height))))
       (draw-text "1=nil 2=:blend 3=:additive" (v 200 (* 1 (get-font-height)))))))
 

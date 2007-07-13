@@ -416,9 +416,8 @@
            #:draw-line
            #:draw-arrow
            #:draw-image
-           #:draw-image-from
-           #:draw-quad
-
+           #:draw-image*
+           
            #:load-font
            #:get-font-height
            #:draw-text
