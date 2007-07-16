@@ -407,6 +407,9 @@
            #:pop-clip
            #:update-screen
 
+           #:image-from-array
+           #:image-from-fn
+
            #:load-image
            #:image-width
            #:image-height
@@ -417,7 +420,7 @@
            #:draw-arrow
            #:draw-image
            #:draw-image*
-           
+
            #:load-font
            #:get-font-height
            #:draw-text

@@ -6,7 +6,9 @@ TODO:
 
 - More drawing primitives.
 
-- image-from-array/image-to-array/screen-to-array etc.
+- Improved texture handling
+
+- image-to-array/screen-to-array etc.
 
 - Fix the FPS limiter, the results could be a lot smoother.
 

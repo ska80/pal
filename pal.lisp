@@ -1,10 +1,12 @@
 ;; Notes:
 ;; tags-resources-free?
 ;; circle/box/point overlap functions, fast v-dist
-;; resources should check for void when freeing
 ;; do absolute paths for data-path work?
 ;; draw-image* aligns & scale, angle?
 ;; draw-polygon*, draw-circle
+;; rgbas for textured polys.
+;; opengl state macros
+
 
 (declaim (optimize (speed 3)
                    (safety 3)))
@@ -50,8 +52,7 @@
          (type (or boolean image) *current-image*))
 
 
-(defgeneric open-pal (&key width height fps title fullscreenp paths))
-(defmethod open-pal (&key (width 800) (height 600) (fps 60) (title "PAL") (fullscreenp nil) (paths nil))
+(defun open-pal (&key (width 800) (height 600) (fps 60) (title "PAL") (fullscreenp nil) (paths nil))
   (when *pal-running*
     (close-pal))
   (pal-ffi:init (logior pal-ffi:+init-video+ pal-ffi:+init-audio+))
@@ -121,8 +122,7 @@
     (set-cursor nil))
   (pal-ffi:free-all-resources))
 
-(defgeneric close-pal ())
-(defmethod close-pal ()
+(defun close-pal ()
   (unwind-protect
        (progn (free-all-resources)
               (pal-ffi:close-audio)
@@ -365,11 +365,22 @@
               (cffi:mem-ref b :uint8)
               (cffi:mem-ref a :uint8)))))
 
+(defun image-from-array (smooth-p array)
+  (image-from-fn (array-dimension array 0)
+                 (array-dimension array 1)
+                 smooth-p
+                 (lambda (y x)
+                   (let ((pixel (aref array x y)))
+                     (values (first pixel)
+                             (second pixel)
+                             (third pixel)
+                             (fourth pixel))))))
 
 
-(defun make-texture-from-surface (surface smooth-p)
-  (let* ((width (min 1024 (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:w)))
-         (height (min 1024 (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:h)))
+(defun image-from-fn (width height smooth-p fn)
+  (let* ((mode pal-ffi:+gl-rgb+)
+         (width (min 1024 width))
+         (height (min 1024 height))
          (texture-width (expt 2 (or (find-if (lambda (x)
                                                (> (expt 2 x)
                                                   (1- width)))
@@ -381,8 +392,11 @@
          (id (cffi:foreign-alloc :uint :count 1)))
     (with-foreign-vector (tdata (* texture-width texture-height) 4)
       (do-n (x width y height)
-        (multiple-value-bind (r g b a) (surface-get-pixel surface x y)
-          (let ((p (the fixnum (+ (* y (the u16 (* (the u11 texture-width) 4))) (the u16 (* 4 x))))))
+        (multiple-value-bind (r g b a) (funcall fn x y)
+          (let ((a (or a 255))
+                (p (the fixnum (+ (* y (the u16 (* (the u11 texture-width) 4))) (the u16 (* 4 x))))))
+            (when (< a 255)
+              (setf mode pal-ffi:+gl-rgba+))
             (setf (cffi:mem-ref tdata :uint8 p) (the u8 r)
                   (cffi:mem-ref tdata :uint8 (+ p 1)) (the u8 g)
                   (cffi:mem-ref tdata :uint8 (+ p 2)) (the u8 b)
@@ -393,26 +407,75 @@
       (pal-ffi:gl-tex-parameteri pal-ffi:+gl-texture-2d+ pal-ffi:+gl-texture-min-filter+ (if smooth-p pal-ffi:+gl-linear+ pal-ffi:+gl-nearest+))
       (pal-ffi:gl-teximage2d pal-ffi:+gl-texture-2d+
                              0
-                             (if (= (cffi:foreign-slot-value (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:pixelformat)
-                                                             'pal-ffi:pixelformat 'pal-ffi:bytesperpixel)
-                                    3)
-                                 pal-ffi:+gl-rgb+
-                                 pal-ffi:+gl-rgba+)
+                             mode
                              texture-width texture-height 0 pal-ffi:+gl-rgba+ pal-ffi:+gl-unsigned-byte+ tdata))
     (let ((image (pal-ffi::make-image :texture (cffi:mem-ref id :uint)
                                       :tx2 (coerce (/ width texture-width) 'single-float)
                                       :ty2 (coerce (/ height texture-height) 'single-float)
                                       :texture-width texture-width
                                       :texture-height texture-height
-                                      :width (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:w)
-                                      :height (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:h))))
+                                      :width width
+                                      :height height)))
       (setf *current-image* image)
       (cffi:foreign-free id)
       (pal-ffi:register-resource image))))
 
+
+(defun image-from-surface (surface smooth-p)
+  (assert (not (cffi:null-pointer-p surface)))
+  (image-from-fn (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:w)
+                 (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:w)
+                 smooth-p
+                 (lambda (x y)
+                   (surface-get-pixel surface x y))))
+
+;; (defun image-from-surface (surface smooth-p)
+;; (assert (not (cffi:null-pointer-p surface)))
+;; (let* ((width (min 1024 (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:w)))
+;; (height (min 1024 (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:h)))
+;; (texture-width (expt 2 (or (find-if (lambda (x)
+;; (> (expt 2 x)
+;; (1- width)))
+;; '(6 7 8 9 10)) 10)))
+;; (texture-height (expt 2 (or (find-if (lambda (x)
+;; (> (expt 2 x)
+;; (1- height)))
+;; '(6 7 8 9 10)) 10)))
+;; (id (cffi:foreign-alloc :uint :count 1)))
+;; (with-foreign-vector (tdata (* texture-width texture-height) 4)
+;; (do-n (x width y height)
+;; (multiple-value-bind (r g b a) (surface-get-pixel surface x y)
+;; (let ((p (the fixnum (+ (* y (the u16 (* (the u11 texture-width) 4))) (the u16 (* 4 x))))))
+;; (setf (cffi:mem-ref tdata :uint8 p) (the u8 r)
+;; (cffi:mem-ref tdata :uint8 (+ p 1)) (the u8 g)
+;; (cffi:mem-ref tdata :uint8 (+ p 2)) (the u8 b)
+;; (cffi:mem-ref tdata :uint8 (+ p 3)) (the u8 a)))))
+;; (pal-ffi:gl-gen-textures 1 id)
+;; (pal-ffi:gl-bind-texture pal-ffi:+gl-texture-2d+ (cffi:mem-ref id :uint))
+;; (pal-ffi:gl-tex-parameteri pal-ffi:+gl-texture-2d+ pal-ffi:+gl-texture-mag-filter+ (if smooth-p pal-ffi:+gl-linear+ pal-ffi:+gl-nearest+))
+;; (pal-ffi:gl-tex-parameteri pal-ffi:+gl-texture-2d+ pal-ffi:+gl-texture-min-filter+ (if smooth-p pal-ffi:+gl-linear+ pal-ffi:+gl-nearest+))
+;; (pal-ffi:gl-teximage2d pal-ffi:+gl-texture-2d+
+;; 0
+;; (if (= (cffi:foreign-slot-value (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:pixelformat)
+;; 'pal-ffi:pixelformat 'pal-ffi:bytesperpixel)
+;; 3)
+;; pal-ffi:+gl-rgb+
+;; pal-ffi:+gl-rgba+)
+;; texture-width texture-height 0 pal-ffi:+gl-rgba+ pal-ffi:+gl-unsigned-byte+ tdata))
+;; (let ((image (pal-ffi::make-image :texture (cffi:mem-ref id :uint)
+;; :tx2 (coerce (/ width texture-width) 'single-float)
+;; :ty2 (coerce (/ height texture-height) 'single-float)
+;; :texture-width texture-width
+;; :texture-height texture-height
+;; :width (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:w)
+;; :height (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:h))))
+;; (setf *current-image* image)
+;; (cffi:foreign-free id)
+;; (pal-ffi:register-resource image))))
+
 (defun load-image (file &optional (smooth-p nil))
   (let* ((surface (pal-ffi:load-image (data-path file)))
-         (image (make-texture-from-surface surface smooth-p)))
+         (image (image-from-surface surface smooth-p)))
     (pal-ffi::free-surface surface)
     image))
 
@@ -541,7 +604,7 @@
                          (v+ pos (v width 0))
                          (v+ pos (v width height))
                          (v+ pos (v 0 height)))
-                   0 0 0 0
+                   r g b a
                    :fill fill
                    :absolutep absolutep))
     ((eq nil fill)

@@ -436,8 +436,8 @@
   (width 0 :type u11))
 
 (defstruct font
-  (image nil :type (or nil image))
-  (glyphs nil :type (or nil (simple-vector 255)))
+  (image nil :type (or boolean image))
+  (glyphs nil :type (or boolean (simple-vector 255)))
   (height 0 :type u11))
 
 (defstruct music
@@ -456,8 +456,6 @@
 
 (defgeneric register-resource (resource))
 (defgeneric free-resource (resource))
-(defgeneric free-all-resources ())
-
 
 (defmethod register-resource (resource)
   (assert (resource-p resource))
@@ -471,18 +469,26 @@
   (setf *resources* (remove resource *resources*)))
 
 (defmethod free-resource ((resource music))
-  (free-music (music-music resource)))
+  (when (music-music resource)
+    (setf (music-music resource) nil)
+    (free-music (music-music resource))))
 
 (defmethod free-resource ((resource font))
-  (free-resource (font-image resource)))
+  (when (font-image resource)
+    (free-resource (font-image resource))
+    (setf (font-image resource) nil)))
 
 (defmethod free-resource ((resource image))
-  (gl-delete-texture (image-texture resource)))
+  (when (> (image-texture resource) 0)
+    (setf (image-texture resource) 0)
+    (gl-delete-texture (image-texture resource))))
 
 (defmethod free-resource ((resource sample))
-  (free-chunk (sample-chunk resource)))
+  (when (sample-chunk resource)
+    (setf (sample-chunk resource) nil)
+    (free-chunk (sample-chunk resource))))
 
-(defmethod free-all-resources ()
+(defun free-all-resources ()
   (dolist (r *resources*)
     (free-resource r))
   (assert (null *resources*)))
@@ -491,12 +497,14 @@
 
 (cffi:defctype new-music :pointer)
 (defmethod cffi:translate-from-foreign (value (name (eql 'new-music)))
+  (assert (not (cffi:null-pointer-p value)))
   (let ((music (make-music :music value)))
     (register-resource music)
     music))
 
 (cffi:defctype new-sample :pointer)
 (defmethod cffi:translate-from-foreign (value (name (eql 'new-sample)))
+  (assert (not (cffi:null-pointer-p value)))
   (let ((sample (make-sample :chunk value)))
     (register-resource sample)
     sample))
