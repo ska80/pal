@@ -18,8 +18,7 @@
   (maphash (lambda (k v)
              (declare (ignore k))
              (setf (cdr v) nil))
-           *tags*)
-  (define-tags default-font (load-font "default-font")))
+           *tags*))
 
 (defun tag (name)
   (declare (type symbol name))
@@ -81,6 +80,18 @@
      (pal-ffi:gl-begin ,mode)
      ,@body
      (pal-ffi:gl-end)))
+
+(defmacro with-line-settings (smoothp size r g b a &body body)
+  `(progn
+     (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-current-bit+ pal-ffi:+gl-line-bit+ pal-ffi:+gl-enable-bit+))
+     (pal-ffi:gl-disable pal-ffi:+gl-texture-2d+)
+     (set-blend-color ,r ,g ,b ,a)
+     (pal-ffi:gl-line-width ,size)
+     (if ,smoothp
+         (pal-ffi:gl-enable pal-ffi:+gl-line-smooth+)
+         (pal-ffi:gl-disable pal-ffi:+gl-line-smooth+))
+     ,@body
+     (pal-ffi:gl-pop-attrib)))
 
 (defmacro randomly (p &body body)
   `(when (= (random ,p) 0)

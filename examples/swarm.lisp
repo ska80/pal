@@ -15,7 +15,7 @@
         (let ((midpoint (pal:v/ (reduce 'pal:v+ vectors :initial-value (pal:v 0 0) :key 'car)
                                 (max 1f0
                                      (coerce (length vectors) 'single-float)))))
-          (pal:draw-point midpoint 255 0 0 255 :size 10f0)
+          (pal:draw-point midpoint 255 0 0 255 :size 10f0 :smoothp t)
           (setf vectors (mapcar (lambda (v)
                                   (cons (pal:v+ (car v) (cdr v))
                                         (pal:v* (pal:v+ (cdr v)

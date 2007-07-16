@@ -8,6 +8,7 @@
         (plane (load-image "lego-plane.png" t))
         (slad (load-image "save_lisp.gif"))
         (teddy (load-image "yellow-teddy.png")))
+    (set-cursor nil)
     (event-loop ()
 
       (draw-rectangle (v 0 0)
@@ -18,6 +19,7 @@
       ;; DRAW-IMAGE draw the whole image at given position. Keyword arguments can be given to define the
       ;; scale, angle and horizontal and vertical alignment ("hotspot")
 
+      (draw-arrow (v 700 500) (get-mouse-pos) 255 255 0 255 :size 5f0 :smoothp t)
       (draw-image plane
                   (v 700 500)
                   :halign :middle ;; Possible options are :left, :right and :middle. :left is the default.
@@ -25,10 +27,10 @@
                   :angle (v-angle (v-direction (v 700 500) (get-mouse-pos))) ;; angle in degrees
                   :scale (* (v-distance (v 700 500) (get-mouse-pos)) .01f0))
 
-      (draw-point (v 700 500) 255 0 0 255 :size 10f0) ;; Draw a red point at the hotspot of previous image.
+      (draw-point (v 700 500) 255 0 0 255 :size 10f0 :smoothp t) ;; Draw a red point at the hotspot of previous image.
 
       ;; DRAW-POLYGON draw a polygon which vertexes are given as a list of VECs.
-      ;; FILL is either nil, t or image that is used as a pattern. If fill is an image the rgba values have no effect.
+      ;; FILL is either nil, t or image that is used as a pattern.
       ;; When ABSOLUTEP is T image patterns position is decided by screen coordinates.
       ;; Max value of SIZE depends on the OpenGL implementation, you probably shouldn't use values greater than 10f0
 
@@ -38,7 +40,7 @@
                             (v 50 100)
                             (v -50 100)
                             )
-                      255 0 0 255
+                      0 0 255 255
                       :fill grid
                       :absolutep t)
         (draw-polygon (list (v -100 0)
@@ -47,9 +49,10 @@
                             (v -50 100)
                             )
                       255 0 0 255
-                      :fill nil :size 4f0
+                      :fill nil
+                      :size 5f0
+                      :smoothp t
                       :absolutep nil))
-
 
 
       ;; DRAW-RECTANGLEs arguments are similar to DRAW-POLYGON
@@ -61,9 +64,9 @@
       ;; good idea to try and fit the image sizes inside the nearest power of two to save memory.
 
       (with-blend (:color '(255 255 255 128))
-        (draw-rectangle (get-mouse-pos)
+        (draw-rectangle (v+ (get-mouse-pos) (v 30 30))
                         100 100
-                        0 0 0 0
+                        255 255 255 64
                         :absolutep t
                         :fill slad))
 

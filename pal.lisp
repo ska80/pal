@@ -80,9 +80,9 @@
   (pal-ffi:gl-ortho 0d0 (coerce width 'double-float) (coerce height 'double-float) 0d0 -1d0 1d0)
   (pal-ffi:gl-matrix-mode pal-ffi:+gl-modelview+)
   (pal-ffi:gl-load-identity)
-  (pal-ffi:gl-alpha-func pal-ffi:+gl-greater+ 0.0f0)
   (clear-screen 0 0 0)
   (reset-tags)
+  (define-tags default-font (load-font "default-font"))
   (setf *data-paths* nil
         *messages* nil
         *pressed-keys* (make-hash-table :test 'eq)
@@ -215,7 +215,6 @@
       (declare (type simple-string m))
       (draw-text m (v 0 (incf y fh))))))
 
-(declaim (inline update-screen))
 (defun update-screen ()
   (let ((e (pal-ffi:gl-get-error)))
     (unless (= e 0)
@@ -365,10 +364,10 @@
               (cffi:mem-ref b :uint8)
               (cffi:mem-ref a :uint8)))))
 
-(defun image-from-array (smooth-p array)
+(defun image-from-array (smoothp array)
   (image-from-fn (array-dimension array 0)
                  (array-dimension array 1)
-                 smooth-p
+                 smoothp
                  (lambda (y x)
                    (let ((pixel (aref array x y)))
                      (values (first pixel)
@@ -377,7 +376,7 @@
                              (fourth pixel))))))
 
 
-(defun image-from-fn (width height smooth-p fn)
+(defun image-from-fn (width height smoothp fn)
   (let* ((mode pal-ffi:+gl-rgb+)
          (width (min 1024 width))
          (height (min 1024 height))
@@ -403,8 +402,8 @@
                   (cffi:mem-ref tdata :uint8 (+ p 3)) (the u8 a)))))
       (pal-ffi:gl-gen-textures 1 id)
       (pal-ffi:gl-bind-texture pal-ffi:+gl-texture-2d+ (cffi:mem-ref id :uint))
-      (pal-ffi:gl-tex-parameteri pal-ffi:+gl-texture-2d+ pal-ffi:+gl-texture-mag-filter+ (if smooth-p pal-ffi:+gl-linear+ pal-ffi:+gl-nearest+))
-      (pal-ffi:gl-tex-parameteri pal-ffi:+gl-texture-2d+ pal-ffi:+gl-texture-min-filter+ (if smooth-p pal-ffi:+gl-linear+ pal-ffi:+gl-nearest+))
+      (pal-ffi:gl-tex-parameteri pal-ffi:+gl-texture-2d+ pal-ffi:+gl-texture-mag-filter+ (if smoothp pal-ffi:+gl-linear+ pal-ffi:+gl-nearest+))
+      (pal-ffi:gl-tex-parameteri pal-ffi:+gl-texture-2d+ pal-ffi:+gl-texture-min-filter+ (if smoothp pal-ffi:+gl-linear+ pal-ffi:+gl-nearest+))
       (pal-ffi:gl-teximage2d pal-ffi:+gl-texture-2d+
                              0
                              mode
@@ -420,62 +419,14 @@
       (cffi:foreign-free id)
       (pal-ffi:register-resource image))))
 
-
-(defun image-from-surface (surface smooth-p)
-  (assert (not (cffi:null-pointer-p surface)))
-  (image-from-fn (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:w)
-                 (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:w)
-                 smooth-p
-                 (lambda (x y)
-                   (surface-get-pixel surface x y))))
-
-;; (defun image-from-surface (surface smooth-p)
-;; (assert (not (cffi:null-pointer-p surface)))
-;; (let* ((width (min 1024 (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:w)))
-;; (height (min 1024 (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:h)))
-;; (texture-width (expt 2 (or (find-if (lambda (x)
-;; (> (expt 2 x)
-;; (1- width)))
-;; '(6 7 8 9 10)) 10)))
-;; (texture-height (expt 2 (or (find-if (lambda (x)
-;; (> (expt 2 x)
-;; (1- height)))
-;; '(6 7 8 9 10)) 10)))
-;; (id (cffi:foreign-alloc :uint :count 1)))
-;; (with-foreign-vector (tdata (* texture-width texture-height) 4)
-;; (do-n (x width y height)
-;; (multiple-value-bind (r g b a) (surface-get-pixel surface x y)
-;; (let ((p (the fixnum (+ (* y (the u16 (* (the u11 texture-width) 4))) (the u16 (* 4 x))))))
-;; (setf (cffi:mem-ref tdata :uint8 p) (the u8 r)
-;; (cffi:mem-ref tdata :uint8 (+ p 1)) (the u8 g)
-;; (cffi:mem-ref tdata :uint8 (+ p 2)) (the u8 b)
-;; (cffi:mem-ref tdata :uint8 (+ p 3)) (the u8 a)))))
-;; (pal-ffi:gl-gen-textures 1 id)
-;; (pal-ffi:gl-bind-texture pal-ffi:+gl-texture-2d+ (cffi:mem-ref id :uint))
-;; (pal-ffi:gl-tex-parameteri pal-ffi:+gl-texture-2d+ pal-ffi:+gl-texture-mag-filter+ (if smooth-p pal-ffi:+gl-linear+ pal-ffi:+gl-nearest+))
-;; (pal-ffi:gl-tex-parameteri pal-ffi:+gl-texture-2d+ pal-ffi:+gl-texture-min-filter+ (if smooth-p pal-ffi:+gl-linear+ pal-ffi:+gl-nearest+))
-;; (pal-ffi:gl-teximage2d pal-ffi:+gl-texture-2d+
-;; 0
-;; (if (= (cffi:foreign-slot-value (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:pixelformat)
-;; 'pal-ffi:pixelformat 'pal-ffi:bytesperpixel)
-;; 3)
-;; pal-ffi:+gl-rgb+
-;; pal-ffi:+gl-rgba+)
-;; texture-width texture-height 0 pal-ffi:+gl-rgba+ pal-ffi:+gl-unsigned-byte+ tdata))
-;; (let ((image (pal-ffi::make-image :texture (cffi:mem-ref id :uint)
-;; :tx2 (coerce (/ width texture-width) 'single-float)
-;; :ty2 (coerce (/ height texture-height) 'single-float)
-;; :texture-width texture-width
-;; :texture-height texture-height
-;; :width (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:w)
-;; :height (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:h))))
-;; (setf *current-image* image)
-;; (cffi:foreign-free id)
-;; (pal-ffi:register-resource image))))
-
-(defun load-image (file &optional (smooth-p nil))
+(defun load-image (file &optional (smoothp nil))
   (let* ((surface (pal-ffi:load-image (data-path file)))
-         (image (image-from-surface surface smooth-p)))
+         (image (progn (assert (not (cffi:null-pointer-p surface)))
+                       (image-from-fn (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:w)
+                                      (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:w)
+                                      smoothp
+                                      (lambda (x y)
+                                        (surface-get-pixel surface x y))))))
     (pal-ffi::free-surface surface)
     image))
 
@@ -548,56 +499,47 @@
       (pal-ffi:gl-vertex2f vx-to (+ vy-to height)))))
 
 (declaim (inline draw-line))
-(defun draw-line (la lb r g b a &key (size 1.0f0))
+(defun draw-line (la lb r g b a &key (size 1.0f0) (smoothp))
   (declare (type vec la lb) (type u8 r g b a) (type single-float size))
-  (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-color-buffer-bit+ pal-ffi:+gl-current-bit+ pal-ffi:+gl-line-bit+ pal-ffi:+gl-enable-bit+))
-  (pal-ffi:gl-disable pal-ffi:+gl-texture-2d+)
-  (set-blend-color r g b a)
-  (pal-ffi:gl-line-width size)
-  (pal-ffi:gl-enable pal-ffi:+gl-line-smooth+)
-  (with-gl pal-ffi:+gl-lines+
-    (pal-ffi:gl-vertex2f (vx la) (vy la))
-    (pal-ffi:gl-vertex2f (vx lb) (vy lb)))
-  (pal-ffi:gl-pop-attrib))
+  (with-line-settings smoothp size r g b a
+    (with-gl pal-ffi:+gl-lines+
+      (pal-ffi:gl-vertex2f (vx la) (vy la))
+      (pal-ffi:gl-vertex2f (vx lb) (vy lb)))))
 
 
 (declaim (inline draw-arrow))
-(defun draw-arrow (la lb r g b a &key (size 1.0f0))
+(defun draw-arrow (la lb r g b a &key (size 1.0f0) smoothp)
   (declare (type vec la lb) (type u8 r g b a) (type single-float size))
-  (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-color-buffer-bit+ pal-ffi:+gl-current-bit+ pal-ffi:+gl-line-bit+ pal-ffi:+gl-enable-bit+))
-  (pal-ffi:gl-disable pal-ffi:+gl-texture-2d+)
-  (set-blend-color r g b a)
-  (pal-ffi:gl-line-width size)
-  (pal-ffi:gl-enable pal-ffi:+gl-line-smooth+)
-  (let ((d (v* (v-direction la lb) (+ size 8f0))))
-    (with-gl pal-ffi:+gl-lines+
-      (pal-ffi:gl-vertex2f (vx la) (vy la))
-      (pal-ffi:gl-vertex2f (vx lb) (vy lb))
-      (pal-ffi:gl-vertex2f (vx lb) (vy lb))
-      (pal-ffi:gl-vertex2f (vx (v+ lb (v-rotate d 140f0)))
-                           (vy (v+ lb (v-rotate d 140f0))))
-      (pal-ffi:gl-vertex2f (vx lb) (vy lb))
-      (pal-ffi:gl-vertex2f (vx (v+ lb (v-rotate d -140f0)))
-                           (vy (v+ lb (v-rotate d -140f0))))))
-  (pal-ffi:gl-pop-attrib))
+  (with-line-settings smoothp size r g b a
+    (let ((d (v* (v-direction la lb) (+ size 8f0))))
+      (with-gl pal-ffi:+gl-lines+
+        (pal-ffi:gl-vertex2f (vx la) (vy la))
+        (pal-ffi:gl-vertex2f (vx lb) (vy lb))
+        (pal-ffi:gl-vertex2f (vx lb) (vy lb))
+        (pal-ffi:gl-vertex2f (vx (v+ lb (v-rotate d 140f0)))
+                             (vy (v+ lb (v-rotate d 140f0))))
+        (pal-ffi:gl-vertex2f (vx lb) (vy lb))
+        (pal-ffi:gl-vertex2f (vx (v+ lb (v-rotate d -140f0)))
+                             (vy (v+ lb (v-rotate d -140f0))))))))
 
 
 
 (declaim (inline draw-point))
-(defun draw-point (pos r g b a &key (size 1f0))
+(defun draw-point (pos r g b a &key (size 1f0) smoothp)
   (declare (type vec pos) (type u8 r g b a) (type single-float size))
-  (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-color-buffer-bit+ pal-ffi:+gl-current-bit+ pal-ffi:+gl-enable-bit+))
+  (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-current-bit+ pal-ffi:+gl-enable-bit+))
   (pal-ffi:gl-disable pal-ffi:+gl-texture-2d+)
-  (pal-ffi:gl-enable pal-ffi:+gl-point-smooth+)
+  (if smoothp
+      (pal-ffi:gl-enable pal-ffi:+gl-point-smooth+)
+      (pal-ffi:gl-disable pal-ffi:+gl-point-smooth+))
   (pal-ffi:gl-point-size size)
   (set-blend-color r g b a)
   (with-gl pal-ffi:+gl-point+
     (pal-ffi:gl-vertex2f (vx pos) (vy pos)))
   (pal-ffi:gl-pop-attrib))
 
-(defun draw-rectangle (pos width height r g b a &key (fill t) (size 1f0) absolutep)
+(defun draw-rectangle (pos width height r g b a &key (fill t) (size 1f0) absolutep smoothp)
   (declare (type vec pos) (type boolean absolutep) (type float size) (type u11 width height) (type u8 r g b a) (type (or image boolean) fill))
-  (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-color-buffer-bit+ pal-ffi:+gl-current-bit+ pal-ffi:+gl-line-bit+ pal-ffi:+gl-enable-bit+))
   (cond
     ((image-p fill)
      (draw-polygon (list pos
@@ -608,29 +550,29 @@
                    :fill fill
                    :absolutep absolutep))
     ((eq nil fill)
-     (pal-ffi:gl-disable pal-ffi:+gl-texture-2d+)
-     (set-blend-color r g b a)
-     (pal-ffi:gl-enable pal-ffi:+gl-line-smooth+)
-     (pal-ffi:gl-line-width size)
-     (with-gl pal-ffi:+gl-line-loop+
-       (pal-ffi:gl-vertex2f (vx pos) (vy pos))
-       (pal-ffi:gl-vertex2f (+ (vx pos) width) (vy pos))
-       (pal-ffi:gl-vertex2f (+ (vx pos) width) (vy pos))
-       (pal-ffi:gl-vertex2f (+ (vx pos) width) (+ (vy pos) height))
-       (pal-ffi:gl-vertex2f (+ (vx pos) width) (+ (vy pos) height))
-       (pal-ffi:gl-vertex2f (vx pos) (+ (vy pos) height))
-       (pal-ffi:gl-vertex2f (vx pos) (+ (vy pos) height))))
+     (with-line-settings smoothp size r g b a
+       (with-gl pal-ffi:+gl-line-loop+
+         (pal-ffi:gl-vertex2f (vx pos) (vy pos))
+         (pal-ffi:gl-vertex2f (+ (vx pos) width) (vy pos))
+         (pal-ffi:gl-vertex2f (+ (vx pos) width) (vy pos))
+         (pal-ffi:gl-vertex2f (+ (vx pos) width) (+ (vy pos) height))
+         (pal-ffi:gl-vertex2f (+ (vx pos) width) (+ (vy pos) height))
+         (pal-ffi:gl-vertex2f (vx pos) (+ (vy pos) height))
+         (pal-ffi:gl-vertex2f (vx pos) (+ (vy pos) height)))))
     (t
+     (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-current-bit+ pal-ffi:+gl-enable-bit+))
      (pal-ffi:gl-disable pal-ffi:+gl-texture-2d+)
      (set-blend-color r g b a)
-     (pal-ffi:gl-rectf (vx pos) (vy pos) (+ (vx pos) width) (+ (vy pos) height))))
-  (pal-ffi:gl-pop-attrib))
+     (pal-ffi:gl-rectf (vx pos) (vy pos) (+ (vx pos) width) (+ (vy pos) height))
+     (pal-ffi:gl-pop-attrib))))
 
-(defun draw-polygon (points r g b a &key (fill t) absolutep (size 1f0))
+(defun draw-polygon (points r g b a &key (fill t) absolutep (size 1f0) smoothp)
   (declare (type list points) (type u8 r g b a) (type (or image boolean) fill))
   (cond
     ((image-p fill)
+     (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-current-bit+))
      (set-image fill)
+     (set-blend-color r g b a)
      (with-gl pal-ffi:+gl-polygon+
        (let ((dx (vx (first points)))
              (dy (vy (first points))))
@@ -646,22 +588,17 @@
                              (- y dy))
                          (pal-ffi:image-texture-height fill))))
              (pal-ffi:gl-tex-coord2f tx ty)
-             (pal-ffi:gl-vertex2f x y))))))
-    ((eq nil fill)
-     (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-color-buffer-bit+ pal-ffi:+gl-current-bit+ pal-ffi:+gl-line-bit+ pal-ffi:+gl-enable-bit+))
-     (pal-ffi:gl-line-width size)
-     (set-blend-color r g b a)
-     (pal-ffi:gl-disable pal-ffi:+gl-texture-2d+)
-     (pal-ffi:gl-enable pal-ffi:+gl-line-smooth+)
-     (with-gl pal-ffi:+gl-line-loop+
-       (dolist (p points)
-         (pal-ffi:gl-vertex2f (vx p) (vy p))))
+             (pal-ffi:gl-vertex2f x y)))))
      (pal-ffi:gl-pop-attrib))
+    ((eq nil fill)
+     (with-line-settings smoothp size r g b a
+       (with-gl pal-ffi:+gl-line-loop+
+         (dolist (p points)
+           (pal-ffi:gl-vertex2f (vx p) (vy p))))))
     (t
-     (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-color-buffer-bit+ pal-ffi:+gl-current-bit+ pal-ffi:+gl-line-bit+ pal-ffi:+gl-enable-bit+))
+     (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-current-bit+ pal-ffi:+gl-enable-bit+))
      (set-blend-color r g b a)
      (pal-ffi:gl-disable pal-ffi:+gl-texture-2d+)
-     (pal-ffi:gl-enable pal-ffi:+gl-line-smooth+)
      (with-gl pal-ffi:+gl-polygon+
        (dolist (p points)
          (pal-ffi:gl-vertex2f (vx p) (vy p))))

@@ -7,7 +7,7 @@
     (let ((font (pal:load-font "georgia")))
       (loop for y from 0 to 300 by 2 do
            (pal:draw-line (pal:v 0 (* y 2)) (pal:v 800 (* y 2))
-                          50 50 255 (truncate y 2)))
+                          50 50 255 (truncate y 2) :smoothp t))
       (let ((midpoint (pal:v-round
                        (pal:v (/ (- (pal:get-screen-width)
                                     (pal:get-text-size "Hello from PAL" font))
@@ -25,7 +25,7 @@
 
 
 (defun hello-2 ()
-  (pal:with-pal ()
+  (pal:with-pal (:fps 10000)
     (let ((angle 0f0))
       (pal:set-blend-color 0 255 0 255)
       (pal:event-loop ()
