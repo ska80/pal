@@ -6,6 +6,7 @@
            #:+gl-line-smooth+
            #:make-font
            #:+gl-scissor-test+
+           #:+gl-smooth+
            #:+gl-points+
            #:free
            #:calloc
@@ -414,6 +415,7 @@
            #:image-width
            #:image-height
            #:draw-polygon
+           #:draw-polygon*
            #:draw-rectangle
            #:draw-point
            #:draw-line
@@ -443,4 +445,5 @@
            #:v-dot #:v-magnitude #:v-normalize #:v-distance
            #:v-truncate #:v-direction
            #:closest-point-to-line #:point-in-line #:lines-intersection
-           #:distance-from-line #:circle-line-intersection #:point-inside-rectangle))
+           #:distance-from-line #:circle-line-intersection #:point-inside-rectangle
+           #:circles-overlap #:point-inside-circle))

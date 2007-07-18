@@ -699,6 +699,7 @@
 (defconstant +gl-DEPTH-BUFFER-BIT+ #x100)
 (defconstant +gl-ENABLE-BIT+ #x2000)
 (defconstant +gl-LINE-BIT+ #x4)
+(defconstant +gl-smooth+ #x1D01)
 (defconstant +gl-LINE-SMOOTH+ #xB20)
 (defconstant +gl-NEAREST+ #x2600)
 (defconstant +gl-point-smooth+ #xB10)

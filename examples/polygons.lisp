@@ -4,9 +4,10 @@
 
 
 (with-pal (:paths (merge-pathnames "examples/" pal::*pal-directory*))
-  (let ((grid (load-image "bg2.png"))
+  (let ((angle 0f0)
+        (grid (load-image "bg2.png"))
         (plane (load-image "lego-plane.png" t))
-        (slad (load-image "save_lisp.gif"))
+        (slad (load-image "save_lisp.gif" t))
         (teddy (load-image "yellow-teddy.png")))
     (set-cursor nil)
     (event-loop ()
@@ -70,6 +71,20 @@
                         :absolutep t
                         :fill slad))
 
+      ;; DRAW-POLYGON* takes a list of vertex coordinates and as keyword arguments a list of texture coordinates(in pixels) for each vertex,
+      ;; an image, and a list of lists of rgba values to use for each vertex.
+
+      (with-transformation (:pos (v 600 100) :angle (incf angle .5f0))
+        (draw-polygon* (list (v 00 10)
+                             (v 100 200)
+                             (v -100 200))
+                       :image slad
+                       :tex-coords (list (v 280 240)
+                                         (v 380 310)
+                                         (v 170 310))
+                       :colors (list (list 255 255 255 255)
+                                     (list 255 0 0 255)
+                                     (list 0 0 255 0))))
 
       ;; DRAW-IMAGE* draws a part of image, defined by a starting point, width and height.
       ;; If width or height are larger than the source image the image is tiled

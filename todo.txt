@@ -6,6 +6,8 @@ TODO:
 
 - More drawing primitives.
 
+- Add align, scale and angle options to DRAW-IMAGE*.
+
 - Improved texture handling
 
 - image-to-array/screen-to-array etc.

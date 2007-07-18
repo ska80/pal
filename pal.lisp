@@ -1,11 +1,8 @@
 ;; Notes:
 ;; tags-resources-free?
-;; circle/box/point overlap functions, fast v-dist
+;; box/box/line overlap functions, fast v-dist
 ;; do absolute paths for data-path work?
-;; draw-image* aligns & scale, angle?
-;; draw-polygon*, draw-circle
-;; rgbas for textured polys.
-;; opengl state macros
+;; draw-circle
 
 
 (declaim (optimize (speed 3)
@@ -447,12 +444,12 @@
           (let ((x (case halign
                      (:right (coerce (- width) 'single-float))
                      (:left 0f0)
-                     (:middle (coerce (- (/ width 2)) 'single-float))
+                     (:middle (- (/ width 2f0)))
                      (otherwise 0f0)))
                 (y (case valign
                      (:bottom (coerce (- height) 'single-float))
                      (:top 0f0)
-                     (:middle (coerce (- (/ height 2)) 'single-float))
+                     (:middle (- (/ height 2f0)))
                      (otherwise 0f0))))
             (with-gl pal-ffi:+gl-quads+
               (pal-ffi:gl-tex-coord2f 0f0 0f0)
@@ -604,6 +601,43 @@
          (pal-ffi:gl-vertex2f (vx p) (vy p))))
      (pal-ffi:gl-pop-attrib))))
 
+(defun draw-polygon* (points &key image tex-coords colors)
+  (declare (type list points tex-coords colors) (type (or boolean image) image))
+  (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-current-bit+ pal-ffi:+gl-enable-bit+))
+  (cond
+    ((and image tex-coords)
+     (set-image image)
+     (cond
+       (colors
+        (pal-ffi:gl-shade-model pal-ffi:+gl-smooth+)
+        (with-gl pal-ffi:+gl-polygon+
+          (loop
+             for p in points
+             for tc in tex-coords
+             for c in colors
+             do
+             (pal-ffi:gl-tex-coord2f (/ (vx tc) (pal-ffi:image-texture-width image)) (/ (vy tc) (pal-ffi:image-texture-height image)))
+             (pal-ffi:gl-color4ub (first c) (second c) (third c) (fourth c))
+             (pal-ffi:gl-vertex2f (vx p) (vy p)))))
+       (t
+        (with-gl pal-ffi:+gl-polygon+
+          (loop
+             for p in points
+             for tc in tex-coords
+             do
+             (pal-ffi:gl-tex-coord2f (/ (vx tc) (pal-ffi:image-texture-width image)) (/ (vy tc) (pal-ffi:image-texture-height image)))
+             (pal-ffi:gl-vertex2f (vx p) (vy p)))))))
+    (t
+     (pal-ffi:gl-shade-model pal-ffi:+gl-smooth+)
+     (pal-ffi:gl-disable pal-ffi:+gl-texture-2d+)
+     (with-gl pal-ffi:+gl-polygon+
+       (loop
+          for p in points
+          for c in colors
+          do
+          (pal-ffi:gl-color4ub (first c) (second c) (third c) (fourth c))
+          (pal-ffi:gl-vertex2f (vx p) (vy p))))))
+  (pal-ffi:gl-pop-attrib))
 
 
 

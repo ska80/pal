@@ -1,6 +1,5 @@
 ;;; Graphics and idea shamelessly ripped from Haaf's Game Engines (http://hge.relishgames.com/) 'Thousands of Hares' demo.
 
-
 (defpackage :pal-example
   (:use :cl :pal))
 (in-package :pal-example)
@@ -54,7 +53,7 @@
 
 
 (defun example ()
-  (with-pal (:width 800 :height 600 :fullscreenp nil :fps 6000 :paths (merge-pathnames "examples/" pal::*pal-directory*))
+  (with-pal (:width 800 :height 600 :fullscreenp t :fps 6000 :paths (merge-pathnames "examples/" pal::*pal-directory*))
     (setf *sprites* nil)
     (set-cursor nil)
 
@@ -72,6 +71,7 @@
                      :angle (random 360f0)))
 
     (event-loop ()
+
       (draw-image* (tag 'bg)
                    (v 0 0)
                    (v 0 0)
@@ -80,8 +80,7 @@
       (with-blend (:mode *blend-mode*)
         (dolist (i *sprites*)
           (draw i)
-          (act i)
-          ))
+          (act i)))
 
       (test-keys
         (:key-1 (setf *blend-mode* nil))
