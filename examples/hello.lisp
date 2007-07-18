@@ -4,6 +4,7 @@
 
 (defun hello-1 ()
   (pal:with-pal (:title "Hello!" :paths (merge-pathnames "examples/" pal::*pal-directory*))
+    (print (pal:get-gl-info))
     (let ((font (pal:load-font "georgia")))
       (loop for y from 0 to 300 by 2 do
            (pal:draw-line (pal:v 0 (* y 2)) (pal:v 800 (* y 2))

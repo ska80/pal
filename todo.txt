@@ -1,7 +1,5 @@
 TODO:
 
-- More drawing primitives.
-
 - Add align, scale and angle options to DRAW-IMAGE*.
 
 - Improved texture handling

@@ -6,6 +6,8 @@
            #:+gl-line-smooth+
            #:make-font
            #:+gl-scissor-test+
+           #:gl-get-integer
+           #:+gl-max-texture-size+
            #:+gl-smooth+
            #:+gl-compile+
            #:+gl-points+

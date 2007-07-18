@@ -1,8 +1,8 @@
 ;; Notes:
 ;; tags-resources-free?
-;; box/box/line overlap functions, fast v-dist
 ;; do absolute paths for data-path work?
-;; draw-circle
+;; box/box/line overlap functions, fast v-dist
+;; load-image-to-array
 
 
 (declaim (optimize (speed 3)
@@ -31,6 +31,7 @@
 (defvar *mouse-x* 0)
 (defvar *mouse-y* 0)
 (defvar *current-image* nil)
+(defvar *max-texture-size* 0)
 
 (declaim (type list *messages*)
          (type list *clip-stack*)
@@ -81,6 +82,7 @@
   (reset-tags)
   (define-tags default-font (load-font "default-font"))
   (setf *data-paths* nil
+        *max-texture-size* (pal-ffi:gl-get-integer pal-ffi:+gl-max-texture-size+)
         *messages* nil
         *pressed-keys* (make-hash-table :test 'eq)
         *ticks* (get-internal-real-time)
@@ -153,11 +155,11 @@
         (error "Data file not found: ~a" file))))
 
 (defun get-gl-info ()
-  (format nil "Vendor: ~a~%Renderer: ~a~%Version: ~a~%Extensions: ~a~%"
-          (pal-ffi:gl-get-string pal-ffi:+gl-vendor+)
-          (pal-ffi:gl-get-string pal-ffi:+gl-renderer+)
-          (pal-ffi:gl-get-string pal-ffi:+gl-version+)
-          (pal-ffi:gl-get-string pal-ffi:+gl-extensions+)))
+  (list :vendor (pal-ffi:gl-get-string pal-ffi:+gl-vendor+)
+        :rendered (pal-ffi:gl-get-string pal-ffi:+gl-renderer+)
+        :version (pal-ffi:gl-get-string pal-ffi:+gl-version+)
+        :extensions (pal-ffi:gl-get-string pal-ffi:+gl-extensions+)
+        :max-texture-size *max-texture-size*))
 
 
 
@@ -371,7 +373,6 @@
                              (second pixel)
                              (third pixel)
                              (fourth pixel))))))
-
 
 (defun image-from-fn (width height smoothp fn)
   (let* ((mode pal-ffi:+gl-rgb+)
@@ -639,7 +640,13 @@
           (pal-ffi:gl-vertex2f (vx p) (vy p))))))
   (pal-ffi:gl-pop-attrib))
 
-
+(defun draw-circle (pos radius r g b a &key (fill t) absolutep (size 1f0) smoothp (segments 30))
+  (declare (type vec pos) (type fixnum segments))
+  (draw-polygon (loop for a from 0 to (* 2 pi) by (/ (* 2 pi) segments) collecting
+                     (v+ pos
+                         (v (* (sin a) radius)
+                            (* (cos a) radius))))
+                r g b a :fill fill :absolutep absolutep :size size :smoothp smoothp))
 
 ;;; Samples
 
@@ -753,12 +760,13 @@
 (defun draw-text (text pos &optional font)
   (declare (type vec pos) (type simple-string text) (type (or font boolean) font))
   (with-transformation (:pos pos)
-    (let ((font (if font
-                    font
-                    (tag 'default-font))))
+    (let* ((font (if font
+                     font
+                     (tag 'default-font)))
+           (first-dl (pal-ffi:font-first-dl font)))
       (set-image (pal-ffi:font-image font))
       (loop for char across text do
-           (pal-ffi:gl-call-list (+ (pal-ffi:font-first-dl font) (char-code char)))))))
+           (pal-ffi:gl-call-list (+ first-dl (char-code char)))))))
 
 (declaim (inline get-font-height))
 (defun get-font-height (&optional font)

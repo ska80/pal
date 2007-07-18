@@ -64,10 +64,19 @@
       ;; For example, image of size 65x30 will be expanded to the size 128x32, so it is a
       ;; good idea to try and fit the image sizes inside the nearest power of two to save memory.
 
-      (with-blend (:color '(255 255 255 128))
-        (draw-rectangle (v+ (get-mouse-pos) (v 30 30))
-                        100 100
-                        255 255 255 64
+      ;; (draw-rectangle (v+ (get-mouse-pos) (v 30 30))
+      ;; 100 100
+      ;; 255 255 255 64
+      ;; :absolutep t
+      ;; :fill slad)
+
+      ;; Replaced with DRAW-CIRCLE, looks a lot nicer that way
+      ;; It works mostly the same as DRAW-RECTANGLE
+
+      (loop for r from 100 downto 50 by 2 do
+           (draw-circle (v+ (get-mouse-pos) (v 30 30))
+                        r
+                        255 255 255 10
                         :absolutep t
                         :fill slad))
 

@@ -681,7 +681,7 @@
 (defconstant +gl-points+ 0)
 (defconstant +gl-ONE-MINUS-DST-ALPHA+ #x305)
 (defconstant +gl-ONE-MINUS-DST-COLOR+ #x307)
-(defconstant +MAX-TEXTURE-SIZE+ #xD33)
+(defconstant +gl-MAX-TEXTURE-SIZE+ #xD33)
 (defconstant +gl-ONE-MINUS-SRC-ALPHA+ #x303)
 (defconstant +gl-ONE-MINUS-SRC-COLOR+ #x301)
 (defconstant +gl-texture-mag-filter+ #x2800)
@@ -879,6 +879,14 @@
   (list :uint)
   (range :int))
 
+(cffi:defcfun ("glGetIntegerv" %gl-get-integer) :void
+  (value :int)
+  (data :pointer))
+
+(defun gl-get-integer (value)
+  (cffi:with-foreign-object (data :int)
+    (%gl-get-integer value data)
+    (cffi:mem-ref data :int)))
 
 
 #+win32 (cffi:defcfun "SHGetFolderPathA" :int (owner :pointer) (folder :int) (handle :pointer) (flags :int) (path :pointer))
