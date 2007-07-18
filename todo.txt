@@ -1,9 +1,5 @@
 TODO:
 
-- Add display list support.
-
-- Font rendering is too slow, maybe use display lists for that?
-
 - More drawing primitives.
 
 - Add align, scale and angle options to DRAW-IMAGE*.

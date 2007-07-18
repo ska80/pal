@@ -438,7 +438,8 @@
 (defstruct font
   (image nil :type (or boolean image))
   (glyphs nil :type (or boolean (simple-vector 255)))
-  (height 0 :type u11))
+  (height 0 :type u11)
+  (first-dl 0 :type u11))
 
 (defstruct music
   music)
@@ -476,6 +477,7 @@
 (defmethod free-resource ((resource font))
   (when (font-image resource)
     (free-resource (font-image resource))
+    (gl-delete-lists (font-first-dl resource) 255)
     (setf (font-image resource) nil)))
 
 (defmethod free-resource ((resource image))
@@ -679,12 +681,14 @@
 (defconstant +gl-points+ 0)
 (defconstant +gl-ONE-MINUS-DST-ALPHA+ #x305)
 (defconstant +gl-ONE-MINUS-DST-COLOR+ #x307)
+(defconstant +MAX-TEXTURE-SIZE+ #xD33)
 (defconstant +gl-ONE-MINUS-SRC-ALPHA+ #x303)
 (defconstant +gl-ONE-MINUS-SRC-COLOR+ #x301)
 (defconstant +gl-texture-mag-filter+ #x2800)
 (defconstant +gl-texture-min-filter+ #x2801)
 (defconstant +gl-linear+ #x2601)
 (defconstant +gl-rgba+ #x1908)
+(defconstant +gl-compile+ #x1300)
 (defconstant +gl-rgb+ #x1907)
 (defconstant +gl-scissor-test+ #xC11)
 (defconstant +gl-unsigned-byte+ #x1401)
@@ -859,6 +863,21 @@
 
 (cffi:defcfun ("glGetError" gl-get-error) :int)
 
+(cffi:defcfun ("glGenLists" gl-gen-lists) :uint
+  (range :int))
+
+(cffi:defcfun ("glNewList" gl-new-list) :void
+  (n :uint)
+  (mode :int))
+
+(cffi:defcfun ("glEndList" gl-end-list) :void)
+
+(cffi:defcfun ("glCallList" gl-call-list) :void
+  (n :uint))
+
+(cffi:defcfun ("glDeleteLists" gl-delete-lists) :void
+  (list :uint)
+  (range :int))
 
 
 

@@ -693,12 +693,11 @@
   (pos (v 0 0) :type vec)
   (width 0 :type u11)
   (height 0 :type u11)
-  (xoff 0 :type fixnum)
-  (dl 0 :type u11))
+  (xoff 0 :type fixnum))
 
 
 (defun load-font (font)
-  (let ((glyphs (make-array 255 :initial-element (make-glyph :width 1 :height 1 :xoff 0 :dl 0) :element-type 'glyph))
+  (let ((glyphs (make-array 255 :initial-element (make-glyph :width 1 :height 1 :xoff 0) :element-type 'glyph))
         (lines (with-open-file (file (data-path (concatenate 'string font ".fnt")))
                  (loop repeat 4 do (read-line file))
                  (loop for i from 0 to 94 collecting
@@ -707,38 +706,59 @@
       (let ((glyph (glyph-from-line line)))
         (setf (aref glyphs (char-code (glyph-char glyph)))
               glyph)))
-    (pal-ffi:register-resource (pal-ffi:make-font :image (load-image (concatenate 'string font ".png"))
-                                                  :height (glyph-height (aref glyphs 32))
-                                                  :glyphs glyphs))))
+    (let ((font (pal-ffi:register-resource (pal-ffi:make-font :image (load-image (concatenate 'string font ".png"))
+                                                              :height (glyph-height (aref glyphs 32))
+                                                              :first-dl (pal-ffi:gl-gen-lists 255)
+                                                              :glyphs glyphs))))
+      (set-image (pal-ffi:font-image font))
+      (loop
+         for g across (pal-ffi:font-glyphs font)
+         for dl from 0 to 255
+         do
+         (pal-ffi:gl-new-list (+ (pal-ffi:font-first-dl font) dl) pal-ffi:+gl-compile+)
+         (draw-glyph (pal-ffi:font-image font) g)
+         (pal-ffi:gl-end-list))
+      font)))
 
 (defun glyph-from-line (line)
   (let ((char (elt line 0))
         (coords (read-from-string (concatenate 'string "(" (subseq line 2) ")"))))
     (make-glyph :char char
-                :dl 0
                 :pos (v (first coords)
                         (second coords))
                 :width (third coords)
                 :height (fourth coords)
                 :xoff (sixth coords))))
 
+(defun draw-glyph (image g)
+  (let* ((vx (vx (glyph-pos g)))
+         (vy (vy (glyph-pos g)))
+         (width (coerce (glyph-width g) 'single-float))
+         (height (coerce (glyph-height g) 'single-float))
+         (tx1 (/ vx (pal-ffi:image-texture-width image)))
+         (ty1 (/ vy (pal-ffi:image-texture-height image)))
+         (tx2 (/ (+ vx width) (pal-ffi:image-texture-width image)))
+         (ty2 (/ (+ vy height) (pal-ffi:image-texture-height image))))
+    (with-gl pal-ffi:+gl-quads+
+      (pal-ffi:gl-tex-coord2f tx1 ty1)
+      (pal-ffi:gl-vertex2f 0f0 0f0)
+      (pal-ffi:gl-tex-coord2f tx2 ty1)
+      (pal-ffi:gl-vertex2f width 0f0)
+      (pal-ffi:gl-tex-coord2f tx2 ty2)
+      (pal-ffi:gl-vertex2f width height)
+      (pal-ffi:gl-tex-coord2f tx1 ty2)
+      (pal-ffi:gl-vertex2f 0f0 height)))
+  (translate (v (+ (glyph-width g) (glyph-xoff g)) 0)))
+
 (defun draw-text (text pos &optional font)
   (declare (type vec pos) (type simple-string text) (type (or font boolean) font))
   (with-transformation (:pos pos)
-    (let* ((font (if font
-                     font
-                     (tag 'default-font)))
-           (origo (v 0 0))
-           (image (pal-ffi:font-image font)))
-      (declare (type image image) (type vec origo))
+    (let ((font (if font
+                    font
+                    (tag 'default-font))))
+      (set-image (pal-ffi:font-image font))
       (loop for char across text do
-           (let ((g (aref (pal-ffi:font-glyphs font) (char-code char))))
-             (draw-image* image
-                          (glyph-pos g)
-                          origo
-                          (glyph-width g)
-                          (glyph-height g))
-             (pal-ffi:gl-translatef (coerce (+ (glyph-width g) (glyph-xoff g)) 'single-float) 0f0 0f0))))))
+           (pal-ffi:gl-call-list (+ (pal-ffi:font-first-dl font) (char-code char)))))))
 
 (declaim (inline get-font-height))
 (defun get-font-height (&optional font)
