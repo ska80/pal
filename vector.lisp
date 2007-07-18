@@ -246,3 +246,13 @@
     (if (and (> x x1) (< x x2)
              (> y y1) (< y y2))
         t nil)))
+
+(declaim (inline point-inside-circle))
+(defun point-inside-circle (co r p)
+  (declare (type vec co p) (type component r))
+  (<= (v-distance co p) r))
+
+(declaim (inline circles-overlap))
+(defun circles-overlap (c1 r1 c2 r2)
+  (declare (vec c1 c2) (component r1 r2))
+  (<= (v-distance c1 c2) (+ r2 r1)))
