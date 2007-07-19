@@ -672,6 +672,7 @@
 (defconstant +gl-line-loop+ #x2)
 (defconstant +gl-polygon+ #x9)
 (defconstant +gl-quads+ #x7)
+(defconstant +gl-PACK-ALIGNMENT+ #xD05)
 (defconstant +gl-blend+ #xBE2)
 (defconstant +gl-src-alpha+ #x302)
 (defconstant +gl-dst-alpha+ #x304)
@@ -888,6 +889,19 @@
     (%gl-get-integer value data)
     (cffi:mem-ref data :int)))
 
+(cffi:defcfun ("glReadPixels" gl-read-pixels) :void
+  (x :int)
+  (y :int)
+  (width :int)
+  (height :int)
+  (format :int)
+  (type :int)
+  (data :pointer))
+
+(cffi:defcfun ("glPixelStorei" gl-pixel-store) :void
+  (pack :int)
+  (value :int))
+
 
 #+win32 (cffi:defcfun "SHGetFolderPathA" :int (owner :pointer) (folder :int) (handle :pointer) (flags :int) (path :pointer))
 
@@ -902,7 +916,3 @@
 ;; SDL_SysWMinfo wmInfo;
 ;; SDL_GetWMInfo(&wmInfo);
 ;; HWND hWnd = wmInfo.window;
-
-;; image = (GLubyte *) malloc(width * height * sizeof(GLubyte) * 3) ;
-;; glPixelStorei(GL_PACK_ALIGNMENT, 1)                              ;
-;; glReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, image) ;

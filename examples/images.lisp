@@ -2,7 +2,6 @@
   (:use :cl :pal))
 (in-package :image-tests)
 
-(defparameter *foo* nil)
 
 (define-tags
   ;; IMAGE-FROM-FN builds and image by calling the FN with x and y coordinates.
@@ -51,4 +50,10 @@
                     (v 0 0)
                     :valign :middle
                     :halign :middle
-                    :angle (incf a .5f0))))))
+                    :angle (incf a .1f0)))
+
+      ;; Press left mousebutton to capture part of the screen as a new cursor
+      (when (key-pressed-p :key-mouse-1)
+        (set-cursor (image-from-array
+                     nil
+                     (screen-to-array (get-mouse-pos) 128 128)))))))

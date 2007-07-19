@@ -5,6 +5,9 @@
   (:export #:+NO-EVENT+
            #:+gl-line-smooth+
            #:make-font
+           #:+gl-pack-alignment+
+           #:gl-read-pixels
+           #:gl-pixel-store
            #:+gl-scissor-test+
            #:free-surface
            #:gl-get-integer
@@ -421,6 +424,7 @@
            #:image-from-array
            #:image-from-fn
            #:load-image-to-array
+           #:screen-to-array
 
            #:load-image
            #:image-width

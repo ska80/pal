@@ -1,9 +1,10 @@
 ;; Notes:
-;; tags-resources-free?
-;; save-screen
+;; tags-resources-free
 ;; raise on top on windows
 ;; smoothed polygons, guess circle segment count
 ;; defunct
+;; calculate max-texture-size
+;; fix the fps
 
 
 (declaim (optimize (speed 3)
@@ -58,7 +59,7 @@
   (pal-ffi:open-audio 22050 pal-ffi:+audio-s16+ 2 2048)
   (pal-ffi:gl-set-attribute pal-ffi:+gl-depth-size+ 0)
   (pal-ffi:gl-set-attribute pal-ffi:+gl-doublebuffer+ 1)
-
+  (pal-ffi:gl-pixel-store pal-ffi:+gl-pack-alignment+ 1)
   (let ((surface (pal-ffi::set-video-mode
                   width
                   height
@@ -395,7 +396,8 @@
       (do-n (x width y height)
         (multiple-value-bind (r g b a) (funcall fn x y)
           (let ((a (or a 255))
-                (p (the fixnum (+ (* y (the u16 (* (the u11 texture-width) 4))) (the u16 (* 4 x))))))
+                (p (the fixnum (+ (* y texture-width 4)
+                                  (the u16 (* 4 x))))))
             (when (< a 255)
               (setf mode pal-ffi:+gl-rgba+))
             (setf (cffi:mem-ref tdata :uint8 p) (the u8 r)
@@ -442,6 +444,27 @@
                                         (surface-get-pixel surface x y))))))
     (pal-ffi::free-surface surface)
     image))
+
+(defun screen-to-array (pos width height)
+  (let ((array (make-array (list width height))))
+    (cffi:with-foreign-object (image :unsigned-char (* width height 3))
+      (pal-ffi:gl-read-pixels (truncate (vx pos))
+                              (- *height* (truncate (vy pos)) height)
+                              width height
+                              pal-ffi:+gl-rgb+ pal-ffi:+gl-unsigned-byte+
+                              image)
+      (do-n (x width y height)
+        (setf (aref array x (- height y 1))
+              (list (cffi:mem-aref image :unsigned-char (+ (* y width 3)
+                                                           (* x 3)))
+                    (cffi:mem-aref image :unsigned-char (+ (* y width 3)
+                                                           (* x 3)
+                                                           1))
+                    (cffi:mem-aref image :unsigned-char (+ (* y width 3)
+                                                           (* x 3)
+                                                           2))
+                    255)))
+      array)))
 
 (defun draw-image (image pos &key angle scale valign halign)
   (declare (type image image) (type vec pos) (type (or boolean single-float) angle scale) (type symbol halign valign))

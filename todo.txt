@@ -4,16 +4,11 @@ TODO:
 
 - Implement image mirroring.
 
-- Box/box/line/circle etc. overlap functions, faster v-dist
+- Box/box/line/circle etc. overlap functions, faster v-dist.
 
-- Improved texture handling
-
-- image-to-array/screen-to-array etc.
+- Improved texture handling.
 
 - Fix the FPS limiter, the results could be a lot smoother.
-
-- Check the sanity of vector.lisp and add some operations, esp. bounding-boxes
-  etc.
 
 - Correct aspect ratio when fullscreen on widescreen displays.
 
