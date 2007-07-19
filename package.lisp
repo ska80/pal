@@ -6,6 +6,7 @@
            #:+gl-line-smooth+
            #:make-font
            #:+gl-scissor-test+
+           #:free-surface
            #:gl-get-integer
            #:+gl-max-texture-size+
            #:+gl-smooth+
@@ -419,6 +420,7 @@
 
            #:image-from-array
            #:image-from-fn
+           #:load-image-to-array
 
            #:load-image
            #:image-width
@@ -431,6 +433,7 @@
            #:draw-arrow
            #:draw-image
            #:draw-image*
+           #:draw-circle
 
            #:load-font
            #:get-font-height

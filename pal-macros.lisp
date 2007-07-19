@@ -52,14 +52,16 @@
               `(set-blend-mode ,mode))
      ,(when color
             `(set-blend-color (first ,color) (second ,color) (third ,color) (fourth ,color)))
-     ,@body
-     (pal-ffi:gl-pop-attrib)))
+     (prog1 (progn
+              ,@body)
+       (pal-ffi:gl-pop-attrib))))
 
 (defmacro with-clipping ((x y width height) &body body)
   `(progn
      (push-clip ,x ,y ,width ,height)
-     ,@body
-     (pop-clip)))
+     (prog1 (progn
+              ,@body)
+       (pop-clip))))
 
 (defmacro with-transformation ((&key pos angle scale) &body body)
   `(progn
@@ -72,8 +74,9 @@
             (let ((s (gensym)))
               `(let ((,s ,scale))
                  (pal-ffi:gl-scalef ,s ,s 1f0))))
-     ,@body
-     (pal-ffi:gl-pop-matrix)))
+     (prog1 (progn
+              ,@body)
+       (pal-ffi:gl-pop-matrix))))
 
 (defmacro with-gl (mode &body body)
   `(progn

@@ -2,6 +2,10 @@ TODO:
 
 - Add align, scale and angle options to DRAW-IMAGE*.
 
+- Implement image mirroring.
+
+- Box/box/line/circle etc. overlap functions, faster v-dist
+
 - Improved texture handling
 
 - image-to-array/screen-to-array etc.

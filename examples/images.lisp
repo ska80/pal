@@ -2,11 +2,12 @@
   (:use :cl :pal))
 (in-package :image-tests)
 
+(defparameter *foo* nil)
 
 (define-tags
   ;; IMAGE-FROM-FN builds and image by calling the FN with x and y coordinates.
   ;; FN should return at least three VALUES for r, g and b and an optional fourth value for alpha.
-  image-1 (image-from-fn 256 256 nil
+  image-1 (image-from-fn 255 255 nil
                          (lambda (x y)
                            (values (truncate (+ 127 (* 128 (sin (/ x 10)))))
                                    (truncate (+ 127 (* 128 (cos (/ y 10)))))
@@ -16,12 +17,20 @@
   ;; Try setting the SMOOTHP parameter to T and see what happens.
   image-2 (image-from-array nil #2A(((255 255 255 128) (0 0 0) (255 255 255))
                                     ((255 255 255) (255 255 0) (255 255 255))
-                                    ((255 255 255) (0 0 0) (255 255 255 128)))))
+                                    ((255 255 255) (0 0 0) (255 255 255 128))))
+
+  ;; LOAD-IMAGE-TO-ARRAY does exactly what it says. Let's load the plane image and randomize the alpha values a bit.
+  image-3 (image-from-array nil
+                            (let ((image (load-image-to-array "lego-plane.png")))
+                              (do-n (x (array-dimension image 0) y (array-dimension image 1))
+                                (when (> (fourth (aref image x y)) 200)
+                                  (setf (fourth (aref image x y)) (+ (random 128) 127))))
+                              image)))
 
 
 
-(with-pal ()
-  (set-cursor (tag 'image-2)) ;; sets image-2 as a mouse cursor image
+(with-pal (:paths (merge-pathnames "examples/" pal::*pal-directory*))
+  (set-cursor (tag 'image-3)) ;; sets image-3 as a mouse cursor image
   (let ((a 0f0))
     (event-loop ()
       (draw-polygon* (list (v 0 0)
@@ -33,7 +42,7 @@
                                    (list 0 0 255 255)
                                    (list 0 0 255 255))) ;; just draws a nice gradient background
 
-      ;; And draw a pattern of image-1s on the top of it. Not exactly seamlessly tiled but hey...
+      ;; And draw a pattern of image-1s on the top of it. Not exactly seamless tiles but hey...
       (draw-rectangle (v 0 0) 800 600 255 255 255 255 :fill (tag 'image-1))
 
       ;; let's scale up a bit to see what the image-2 looks like.

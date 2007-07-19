@@ -1,8 +1,9 @@
 ;; Notes:
 ;; tags-resources-free?
-;; do absolute paths for data-path work?
-;; box/box/line overlap functions, fast v-dist
-;; load-image-to-array
+;; save-screen
+;; raise on top on windows
+;; smoothed polygons, guess circle segment count
+;; defunct
 
 
 (declaim (optimize (speed 3)
@@ -57,54 +58,57 @@
   (pal-ffi:open-audio 22050 pal-ffi:+audio-s16+ 2 2048)
   (pal-ffi:gl-set-attribute pal-ffi:+gl-depth-size+ 0)
   (pal-ffi:gl-set-attribute pal-ffi:+gl-doublebuffer+ 1)
-  (when (cffi:null-pointer-p (pal-ffi::set-video-mode
-                              width
-                              height
-                              0
-                              (logior (if fullscreenp
-                                          pal-ffi::+fullscreen+
-                                          0)
-                                      pal-ffi:+opengl+)))
-    (error "PAL failed to obtain SDL surface"))
-  (pal-ffi:set-caption title (cffi:null-pointer))
-  (pal-ffi:gl-disable pal-ffi:+gl-cull-face-test+)
-  (pal-ffi:gl-enable pal-ffi:+gl-texture-2d+)
-  (pal-ffi:gl-shade-model pal-ffi:+gl-flat+)
-  (pal-ffi:gl-disable pal-ffi:+gl-scissor-test+)
-  (set-blend-mode :blend)
-  (pal-ffi:gl-viewport 0 0 width height)
-  (pal-ffi:gl-matrix-mode pal-ffi:+gl-projection+)
-  (pal-ffi:gl-load-identity)
-  (pal-ffi:gl-ortho 0d0 (coerce width 'double-float) (coerce height 'double-float) 0d0 -1d0 1d0)
-  (pal-ffi:gl-matrix-mode pal-ffi:+gl-modelview+)
-  (pal-ffi:gl-load-identity)
-  (clear-screen 0 0 0)
-  (reset-tags)
-  (define-tags default-font (load-font "default-font"))
-  (setf *data-paths* nil
-        *max-texture-size* (pal-ffi:gl-get-integer pal-ffi:+gl-max-texture-size+)
-        *messages* nil
-        *pressed-keys* (make-hash-table :test 'eq)
-        *ticks* (get-internal-real-time)
-        *title* title
-        *current-image* nil
-        *max-fps* (truncate 1000 fps)
-        *ticks* (pal-ffi:get-tick)
-        *clip-stack* nil
-        *fps* 1
-        *delay* 0
-        *new-fps* 0
-        *cursor* t
-        *cursor-offset* (v 0 0)
-        *width* width
-        *height* height
-        *pal-running* t)
-  (add-path *pal-directory*)
-  (add-path *default-pathname-defaults*)
-  (if (listp paths)
-      (dolist (p paths)
-        (add-path p))
-      (add-path paths)))
+
+  (let ((surface (pal-ffi::set-video-mode
+                  width
+                  height
+                  0
+                  (logior (if fullscreenp
+                              pal-ffi::+fullscreen+
+                              0)
+                          pal-ffi:+opengl+))))
+    (when (cffi:null-pointer-p surface)
+      (error "PAL failed to obtain SDL surface"))
+    (setf *data-paths* nil
+          *max-texture-size* (pal-ffi:gl-get-integer pal-ffi:+gl-max-texture-size+)
+          *messages* nil
+          *pressed-keys* (make-hash-table :test 'eq)
+          *ticks* (get-internal-real-time)
+          *title* title
+          *current-image* nil
+          *max-fps* (truncate 1000 fps)
+          *ticks* (pal-ffi:get-tick)
+          *clip-stack* nil
+          *fps* 1
+          *delay* 0
+          *new-fps* 0
+          *cursor* t
+          *cursor-offset* (v 0 0)
+          *pal-running* t
+          *width* (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:w)
+          *height* (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:h))
+    (pal-ffi:set-caption title (cffi:null-pointer))
+    (pal-ffi:gl-disable pal-ffi:+gl-cull-face-test+)
+    (pal-ffi:gl-enable pal-ffi:+gl-texture-2d+)
+    (pal-ffi:gl-shade-model pal-ffi:+gl-flat+)
+    (pal-ffi:gl-disable pal-ffi:+gl-scissor-test+)
+    (set-blend-mode :blend)
+    (pal-ffi:gl-viewport 0 0 *width* *height*)
+    (pal-ffi:gl-matrix-mode pal-ffi:+gl-projection+)
+    (pal-ffi:gl-load-identity)
+    (pal-ffi:gl-ortho 0d0 (coerce *width* 'double-float) (coerce *height* 'double-float) 0d0 -1d0 1d0)
+    (pal-ffi:gl-matrix-mode pal-ffi:+gl-modelview+)
+    (pal-ffi:gl-load-identity)
+    (clear-screen 0 0 0)
+    (reset-tags)
+    (define-tags default-font (load-font "default-font"))
+
+    (add-path *pal-directory*)
+    (add-path *default-pathname-defaults*)
+    (if (listp paths)
+        (dolist (p paths)
+          (add-path p))
+        (add-path paths))))
 
 (declaim (inline clamp))
 (defun clamp (min v max)
@@ -367,7 +371,7 @@
   (image-from-fn (array-dimension array 0)
                  (array-dimension array 1)
                  smoothp
-                 (lambda (y x)
+                 (lambda (x y)
                    (let ((pixel (aref array x y)))
                      (values (first pixel)
                              (second pixel)
@@ -417,11 +421,22 @@
       (cffi:foreign-free id)
       (pal-ffi:register-resource image))))
 
+(defun load-image-to-array (file)
+  (let* ((surface (pal-ffi:load-image (data-path file))))
+    (assert (not (cffi:null-pointer-p surface)))
+    (let* ((width (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:w))
+           (height (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:h))
+           (array (make-array (list width height))))
+      (do-n (x width y height)
+        (setf (aref array x y) (multiple-value-list (surface-get-pixel surface x y))))
+      (pal-ffi:free-surface surface)
+      array)))
+
 (defun load-image (file &optional (smoothp nil))
   (let* ((surface (pal-ffi:load-image (data-path file)))
          (image (progn (assert (not (cffi:null-pointer-p surface)))
                        (image-from-fn (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:w)
-                                      (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:w)
+                                      (cffi:foreign-slot-value surface 'pal-ffi:surface 'pal-ffi:h)
                                       smoothp
                                       (lambda (x y)
                                         (surface-get-pixel surface x y))))))
