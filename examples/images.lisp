@@ -30,7 +30,7 @@
 
 (with-pal (:paths (merge-pathnames "examples/" pal::*pal-directory*))
   (set-cursor (tag 'image-3)) ;; sets image-3 as a mouse cursor image
-  (let ((a 0f0))
+  (let ((a 0))
     (event-loop ()
       (draw-polygon* (list (v 0 0)
                            (v 800 0)
@@ -50,7 +50,7 @@
                     (v 0 0)
                     :valign :middle
                     :halign :middle
-                    :angle (incf a .1f0)))
+                    :angle (incf a .1)))
 
       ;; Press left mousebutton to capture part of the screen as a new cursor
       (when (key-pressed-p :key-mouse-1)

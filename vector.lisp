@@ -3,132 +3,147 @@
 
 (in-package :pal)
 
-#+CL-HAS-FULL-NUMERIC-TOWER-DAMMIT (deftype component () 'number)
-#-CL-HAS-FULL-NUMERIC-TOWER-DAMMIT (deftype component () 'single-float)
+
+(deftype component () 'single-float)
 
 (defstruct (vec (:conc-name v))
   (x 0 :type component) (y 0 :type component))
 
 (declaim (inline component))
-(defun component (x)
+(defunct component (x)
+    (number x)
   (coerce x 'component))
 
 (declaim (inline v))
-(defun v (x y)
-  (make-vec :x (component x) :y (component y)))
+(defunct v (x y)
+    (component x component y)
+  (make-vec :x x :y y))
 
 (declaim (inline vf))
 (defun vf (x y)
+  (declare (type component x) (type component y))
   (make-vec :x x :y y))
 
+
+
 (declaim (inline rad))
-(defun rad (degrees)
-  (declare (type component degrees))
+(defunct rad (degrees)
+    (number degrees)
   (component (* (/ pi 180) degrees)))
 
-(defun deg (radians)
-  (declare (type component radians))
+(declaim (inline deg))
+(defunct deg (radians)
+    (number radians)
   (component (* (/ 180 pi) radians)))
 
 
 
-(defun angle-v (angle)
-  (declare (type component angle))
+(declaim (inline angle-v))
+(defunct angle-v (angle)
+    (number angle)
   (v (sin (rad angle)) (- (cos (rad angle)))))
 
 (declaim (inline vec-angle))
-(defun v-angle (vec)
-  (declare (type vec vec))
+(defunct v-angle (vec)
+    (vec vec)
   (mod (deg (atan (vx vec)
                   (if (zerop (vy vec))
                       least-negative-short-float
                       (- (vy vec)))))
        360))
 
-(defun v-random (length)
+(defunct v-random (length)
+    (number length)
   (v* (angle-v (random 360.0)) length))
 
 (declaim (inline v-round))
-(defun v-round (v)
-  (declare (type vec v))
+(defunct v-round (v)
+    (vec v)
   (v (round (vx v)) (round (vy v))))
 
 (declaim (inline v-floor))
-(defun v-floor (v)
-  (declare (type vec v))
+(defunct v-floor (v)
+    (vec v)
   (v (floor (vx v)) (floor (vy v))))
 
 
 (declaim (inline v=))
-(defun v= (a b)
+(defunct v= (a b)
+    (vec a vec b)
   (and (= (vx a) (vx b))
        (= (vy a) (vy b))))
 
 (declaim (inline v+!))
-(defun v+! (a b)
+(defunct v+! (a b)
+    (vec a vec b)
   (setf (vx a) (+ (vx a) (vx b)))
   (setf (vy a) (+ (vy a) (vy b)))
   nil)
 
 (declaim (inline v+))
-(defun v+ (a b)
+(defunct v+ (a b)
+    (vec a vec b)
   (vf (+ (vx a) (vx b))
       (+ (vy a) (vy b))))
 
 
 (declaim (inline v-))
-(defun v- (a b)
+(defunct v- (a b)
+    (vec a vec b)
   (vf (- (vx a) (vx b))
       (- (vy a) (vy b))))
 
 (declaim (inline v-!))
-(defun v-! (a b)
+(defunct v-! (a b)
+    (vec a vec b)
   (setf (vx a) (- (vx a) (vx b)))
   (setf (vy a) (- (vy a) (vy b)))
   nil)
 
 
 (declaim (inline v*!))
-(defun v*! (v m)
-  (declare (type component m))
+(defunct v*! (v m)
+    (component m)
   (setf (vx v) (* (vx v) m))
   (setf (vy v) (* (vy v) m))
   nil)
 
 (declaim (inline v*))
-(defun v* (v m)
-  (declare (type component m))
+(defunct v* (v m)
+    (vec v component m)
   (vf (* (vx v) m)
       (* (vy v) m)))
 
 
 (declaim (inline v/))
-(defun v/ (v d)
-  (declare (type component d))
+(defunct v/ (v d)
+    (vec v component d)
   (vf (/ (vx v) d)
       (/ (vy v) d)))
 
 (declaim (inline v/!))
-(defun v/! (v d)
-  (declare (type component d))
+(defunct v/! (v d)
+    (vec v component d)
   (setf (vx v) (/ (vx v) d))
   (setf (vy v) (/ (vy v) d))
   nil)
 
 (declaim (inline v-max))
-(defun v-max (a b)
+(defunct v-max (a b)
+    (vec a vec b)
   (if (< (v-magnitude a) (v-magnitude b))
       b a))
 
 
 (declaim (inline v-min))
-(defun v-min (a b)
+(defunct v-min (a b)
+    (vec a vec b)
   (if (< (v-magnitude a) (v-magnitude b))
       a b))
 
 
-(defun v-rotate (v a)
-  (declare (type component a) (type vec v))
+(defunct v-rotate (v a)
+    (vec v component a)
   (let ((a (rad a)))
     (vf (- (* (cos a) (vx v))
            (* (sin a) (vy v)))
@@ -136,43 +151,44 @@
            (* (cos a) (vy v))))))
 
 (declaim (inline v-dot))
-(defun v-dot (a b)
+(defunct v-dot (a b)
+    (vec a vec b)
   (+ (* (vx a) (vx b))
      (* (vy a) (vy b))))
 
 
 (declaim (inline v-magnitude))
-(defun v-magnitude (v)
-  (declare (type vec v))
+(defunct v-magnitude (v)
+    (vec v)
   (the component (sqrt (the component
                          (+ (expt (vx v) 2)
                             (expt (vy v) 2))))))
 
-(declaim (inline v-normalize))
-(defun v-normalize (v)
+(defunct v-normalize (v)
+    (vec v)
   (if (/= (v-magnitude v) 0.0)
       (vf (/ (vx v) (v-magnitude v))
           (/ (vy v) (v-magnitude v)))
       (vf 0.0 0.0)))
 
-
-(defun v-direction (from-vector to-vector)
+(defunct v-direction (from-vector to-vector)
+    (vec from-vector vec to-vector)
   (v-normalize (v- to-vector from-vector)))
 
-
-(declaim (inline v-distance))
-(defun v-distance (v1 v2)
-  (declare (type vec v1 v2))
+(defunct v-distance (v1 v2)
+    (vec v1 vec v2)
   (v-magnitude (v- v1 v2)))
 
-(defun v-truncate (v l)
+
+(defunct v-truncate (v l)
+    (vec v component l)
   (v* (v-normalize v) l))
 
 
 
 
-(defun closest-point-to-line (a b p)
-  (declare (type vec a b p))
+(defunct closest-point-to-line (a b p)
+    (vec a vec b vec p)
   (let* ((dir (v- b a))
          (diff (v- p a))
          (len (v-dot dir dir)))
@@ -185,16 +201,15 @@
                   b)
               a)))))
 
-(declaim (inline point-in-line))
-(defun point-in-line (a b p)
-  (declare (type vec a b p))
+(defunct point-in-line (a b p)
+    (vec a vec b vec p)
   (let ((d (v-direction a b)))
     (if (< (abs (+ (v-dot d (v-direction a p))
                    (v-dot d (v-direction b p)))) .00001)
         t nil)))
 
-(defun lines-intersection (la1 la2 lb1 lb2)
-  (declare (type vec la1 la2 lb1 lb2))
+(defunct lines-intersection (la1 la2 lb1 lb2)
+    (vec la1 vec la2 vec lb1 vec lb2)
   (let ((x1 (vx la1))
         (y1 (vy la1))
         (x2 (vx la2))
@@ -219,8 +234,8 @@
                 p
                 nil))))))
 
-(defun circle-line-intersection (a b co r)
-  (declare (type vec a b co) (type component r))
+(defunct circle-line-intersection (a b co r)
+    (vec a vec b vec co component r)
   (let ((cp (closest-point-to-line a b co)))
     (if cp
         (if (<= (v-distance co cp) r)
@@ -228,15 +243,15 @@
             nil)
         nil)))
 
-(defun distance-from-line (a b p)
-  (declare (type vec a b p))
+(defunct distance-from-line (a b p)
+    (vec a vec b vec p)
   (let ((cp (closest-point-to-line a b p)))
     (if cp
         (v-distance cp p)
         nil)))
 
-(defun point-inside-rectangle (topleft width height pos)
-  (declare (type (or component fixnum) width height) (type vec pos topleft))
+(defunct point-inside-rectangle (topleft width height pos)
+    (vec topleft vec pos component width component height)
   (let* ((x1 (vx topleft))
          (y1 (vy topleft))
          (x2 (+ x1 width))
@@ -248,11 +263,11 @@
         t nil)))
 
 (declaim (inline point-inside-circle))
-(defun point-inside-circle (co r p)
-  (declare (type vec co p) (type component r))
+(defunct point-inside-circle (co r p)
+    (vec co vec p component r)
   (<= (v-distance co p) r))
 
 (declaim (inline circles-overlap))
-(defun circles-overlap (c1 r1 c2 r2)
-  (declare (vec c1 c2) (component r1 r2))
+(defunct circles-overlap (c1 r1 c2 r2)
+    (vec c1 vec c2 component r1 component r2)
   (<= (v-distance c1 c2) (+ r2 r1)))

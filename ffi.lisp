@@ -467,6 +467,7 @@
   (assert (typep resource 'resource)))
 
 (defmethod free-resource :after (resource)
+  (pal::reset-tags-holding-this-resource resource)
   (setf *resources* (remove resource *resources*)))
 
 (defmethod free-resource ((resource music))

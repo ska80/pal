@@ -6,7 +6,6 @@
 
 (defvar *tags* (make-hash-table :test 'eq))
 
-
 (defmacro define-tags (&body tags)
   `(progn
      ,@(mapcar (lambda (r)
@@ -20,6 +19,13 @@
              (setf (cdr v) nil))
            *tags*))
 
+(defun reset-tags-holding-this-resource (resource)
+  (maphash (lambda (k v)
+             (declare (ignore k))
+             (when (eq resource (cdr v))
+               (setf (cdr v) nil)))
+           *tags*))
+
 (defun tag (name)
   (declare (type symbol name))
   (let ((resource (gethash name *tags*)))
@@ -30,6 +36,34 @@
               (assert (resource-p r))
               (the resource (setf (cdr resource) r))))
         (error "Named resource ~a not found" name))))
+
+(defun coerce-form-for (to-type value)
+  `(,value ,(case to-type
+                  ((u8 u11 u16 integer fixnum) `(truncate ,value))
+                  (component `(coerce ,value 'component))
+                  (single-float `(coerce ,value 'single-float))
+                  (double-float `(coerce ,value 'double-float))
+                  (float `(coerce ,value 'float)))))
+
+
+(defmacro defunct (name lambda-list declarations &body body)
+  (let* ((decls (loop for (a b) on declarations by #'cddr collecting
+                     `(type ,a ,b)))
+         (coerced (remove-if (lambda (decl)
+                               (null (second decl)))
+                             (mapcar (lambda (decl)
+                                       (coerce-form-for (second decl) (third decl)))
+                                     decls))))
+    (if coerced
+        `(defun ,name ,lambda-list
+           (let (,@coerced)
+             (declare ,@decls)
+             ,@body))
+        `(defun ,name ,lambda-list
+           (declare ,@decls)
+           ,@body))))
+
+
 
 (defmacro with-resource ((resource init-form) &body body)
   `(let ((,resource ,init-form))
@@ -69,11 +103,11 @@
      ,(when pos
             `(translate ,pos))
      ,(when angle
-            `(pal-ffi:gl-rotatef ,angle 0f0 0f0 1f0))
+            `(rotate ,angle))
      ,(when scale
             (let ((s (gensym)))
               `(let ((,s ,scale))
-                 (pal-ffi:gl-scalef ,s ,s 1f0))))
+                 (scale ,s ,s))))
      (prog1 (progn
               ,@body)
        (pal-ffi:gl-pop-matrix))))

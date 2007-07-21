@@ -24,7 +24,7 @@
    (vel :accessor vel-of :initarg :vel :initform (v 0 0))
    (alt :accessor alt-of :initarg :alt :initform 10)
    (image :accessor image-of :initarg :image)
-   (angle :accessor angle-of :initarg :angle :initform 0f0)))
+   (angle :accessor angle-of :initarg :angle :initform 0)))
 
 (defmethod initialize-instance :after ((sprite sprite) &key &allow-other-keys)
   (push sprite *sprites*))
@@ -50,7 +50,7 @@
 
 (defmethod act ((s plane))
   (v+! (vel-of s)
-       (v* (v-direction (pos-of s) (get-mouse-pos)) .3f0))
+       (v* (v-direction (pos-of s) (get-mouse-pos)) .3))
   (setf (angle-of s) (v-angle (vel-of s)))
   (call-next-method))
 
@@ -61,13 +61,13 @@
   (:default-initargs :image (tag 'teddy)))
 
 (defmethod act ((s mutant-teddy))
-  (setf (angle-of s) (mod (+ (angle-of s) 1f0) 360))
+  (setf (angle-of s) (mod (+ (angle-of s) 1) 360))
   (call-next-method))
 
 
 
 (defun example ()
-  (with-pal (:width 800 :height 600 :fullscreenp nil :fps 60 :paths (merge-pathnames "examples/" pal::*pal-directory*))
+  (with-pal (:fullscreenp nil :width 800 :height 600 :fullscreenp nil :fps 60 :paths (merge-pathnames "examples/" pal::*pal-directory*))
     ;; inits PAL, the args used are the default values.
     ;; PATHS is a pathname or list of pathnames that PAL uses to find the resource files loaded with LOAD-* functions.
     ;; By default PATHS contains the PAL source directory and value of *default-pathname-defaults*
@@ -84,8 +84,8 @@
       (make-instance 'mutant-teddy
                      :pos (v (random (get-screen-width))
                              (random (get-screen-height)))
-                     :vel (v-random 3f0)
-                     :angle (random 360f0)))
+                     :vel (v-random 3.0)
+                     :angle (random 360.0)))
 
     (event-loop ()
       ;; simple event loop, no mouse-move, key-down etc. handlers defined, we'll handle input explicitly with TEST-KEYS.

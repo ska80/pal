@@ -33,7 +33,7 @@
         (pal:draw-rectangle (pal:v 0 0)
                             (pal:get-screen-width) (pal:get-screen-height)
                             0 0 0 10)
-        (pal:with-transformation (:pos (pal:v 400 300) :angle (incf angle 1f0) :scale 3f0)
+        (pal:with-transformation (:pos (pal:v 400 300) :angle (incf angle 1) :scale 3)
           (pal:draw-text "Hello from PAL" (pal:v 0 0)))))))
 
 ;; (hello-2)

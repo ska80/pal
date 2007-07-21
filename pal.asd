@@ -9,11 +9,11 @@
   ((:file "ffi"
           :depends-on ("package"))
    (:file "vector"
-          :depends-on ("package"))
-   (:file "pal-macros"
-          :depends-on ("ffi" "vector"))
-   (:file "pal"
           :depends-on ("pal-macros"))
+   (:file "pal-macros"
+          :depends-on ("ffi"))
+   (:file "pal"
+          :depends-on ("pal-macros" "vector"))
    (:file "package"))
   :depends-on ("cffi"))
 

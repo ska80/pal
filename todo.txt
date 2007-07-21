@@ -4,6 +4,8 @@ TODO:
 
 - Implement image mirroring.
 
+- Image tiles and animation.
+
 - Box/box/line/circle etc. overlap functions, faster v-dist.
 
 - Improved texture handling.
@@ -13,11 +15,6 @@ TODO:
 - Correct aspect ratio when fullscreen on widescreen displays.
 
 - I would really like to see it run on OS X.
-
-- Simple and transparent animation system for images.
-
-- Using fullscreen mode on Windows some times results in screen flickering
-  between desktop and PAL screen, usually fixed by alt-tabbing. Should be fixed.
 
 - The problems with Linux and some gfx drivers should be somehow fixed.
 

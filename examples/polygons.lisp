@@ -4,7 +4,7 @@
 
 
 (with-pal (:paths (merge-pathnames "examples/" pal::*pal-directory*))
-  (let ((angle 0f0)
+  (let ((angle 0)
         (grid (load-image "bg2.png"))
         (plane (load-image "lego-plane.png" t))
         (slad (load-image "save_lisp.gif" t))
@@ -20,15 +20,15 @@
       ;; DRAW-IMAGE draw the whole image at given position. Keyword arguments can be given to define the
       ;; scale, angle and horizontal and vertical alignment ("hotspot")
 
-      (draw-arrow (v 700 500) (get-mouse-pos) 255 255 0 255 :size 5f0 :smoothp t)
+      (draw-arrow (v 700 500) (get-mouse-pos) 255 255 0 255 :size 5 :smoothp t)
       (draw-image plane
                   (v 700 500)
                   :halign :middle ;; Possible options are :left, :right and :middle. :left is the default.
                   :valign :bottom ;; -''- :top, :bottom, :middle. :top is the default.
                   :angle (v-angle (v-direction (v 700 500) (get-mouse-pos))) ;; angle in degrees
-                  :scale (* (v-distance (v 700 500) (get-mouse-pos)) .01f0))
+                  :scale (* (v-distance (v 700 500) (get-mouse-pos)) .01))
 
-      (draw-point (v 700 500) 255 0 0 255 :size 10f0 :smoothp t) ;; Draw a red point at the hotspot of previous image.
+      (draw-point (v 700 500) 255 0 0 255 :size 10 :smoothp t) ;; Draw a red point at the hotspot of previous image.
 
       ;; DRAW-POLYGON draw a polygon which vertexes are given as a list of VECs.
       ;; FILL is either nil, t or image that is used as a pattern.
@@ -51,7 +51,7 @@
                             )
                       255 0 0 255
                       :fill nil
-                      :size 5f0
+                      :size 5
                       :smoothp t
                       :absolutep nil))
 
@@ -83,7 +83,7 @@
       ;; DRAW-POLYGON* takes a list of vertex coordinates and as keyword arguments a list of texture coordinates(in pixels) for each vertex,
       ;; an image, and a list of lists of rgba values to use for each vertex.
 
-      (with-transformation (:pos (v 600 100) :angle (incf angle .5f0))
+      (with-transformation (:pos (v 600 100) :angle (incf angle .5))
         (draw-polygon* (list (v 00 10)
                              (v 100 200)
                              (v -100 200))
