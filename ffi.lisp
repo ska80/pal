@@ -467,7 +467,7 @@
   (assert (typep resource 'resource)))
 
 (defmethod free-resource :after (resource)
-  (pal::reset-tags-holding-this-resource resource)
+  (pal::reset-tags :resource resource)
   (setf *resources* (remove resource *resources*)))
 
 (defmethod free-resource ((resource music))
@@ -913,7 +913,3 @@
 
 (cffi:defcfun "calloc" :pointer (nelem :uint) (elsize :uint))
 (cffi:defcfun "free" :void (ptr :pointer))
-
-;; SDL_SysWMinfo wmInfo;
-;; SDL_GetWMInfo(&wmInfo);
-;; HWND hWnd = wmInfo.window;

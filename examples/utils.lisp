@@ -27,9 +27,9 @@
 (mapcar (pal:curry '* 2 2) '(1 2 3 4 5))
 
 
-;; RELT returns a random element in a sequence
+;; RANDOM-ELT returns a random element in a sequence
 
-(pal:relt (mapcar (pal:curry '* 2 2) '(1 2 3 4 5)))
+(pal:random-elt (mapcar (pal:curry '* 2 2) '(1 2 3 4 5)))
 
 
 ;; CLAMPs a value between min and max
@@ -41,3 +41,8 @@
 
 (pal:data-path "foo.png")
 
+
+;; LOAD-FOREIGN-LIBRARIES loads all the required dynamic libraries. Normally you don't need to use this
+;; but if you are distributing apps with CLisp you need to call this in your init-fn before any other PAL functions.
+
+(pal:load-foreign-libraries)

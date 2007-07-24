@@ -13,17 +13,15 @@
                         (cons (lambda () ,(second r)) nil)))
                (loop for (a b) on tags by #'cddr collect (list a b)))))
 
-(defun reset-tags ()
-  (maphash (lambda (k v)
-             (declare (ignore k))
-             (setf (cdr v) nil))
-           *tags*))
-
-(defun reset-tags-holding-this-resource (resource)
-  (maphash (lambda (k v)
-             (declare (ignore k))
-             (when (eq resource (cdr v))
-               (setf (cdr v) nil)))
+(defun reset-tags (&key resource)
+  (maphash (if resource
+               (lambda (k v)
+                 (declare (ignore k))
+                 (when (eq resource (cdr v))
+                   (setf (cdr v) nil)))
+               (lambda (k v)
+                 (declare (ignore k))
+                 (setf (cdr v) nil)))
            *tags*))
 
 (defun tag (name)
@@ -37,7 +35,7 @@
               (the resource (setf (cdr resource) r))))
         (error "Named resource ~a not found" name))))
 
-(defun coerce-form-for (to-type value)
+(defun make-coerce-form (to-type value)
   `(,value ,(case to-type
                   ((u8 u11 u16 integer fixnum) `(truncate ,value))
                   (component `(coerce ,value 'component))
@@ -52,7 +50,7 @@
          (coerced (remove-if (lambda (decl)
                                (null (second decl)))
                              (mapcar (lambda (decl)
-                                       (coerce-form-for (second decl) (third decl)))
+                                       (make-coerce-form (second decl) (third decl)))
                                      decls))))
     (if coerced
         `(defun ,name ,lambda-list
@@ -160,11 +158,11 @@
                     ,@(rest arg)))
                args)))
 
-(defmacro funcall? (fn &rest args)
+(declaim (inline funcall?))
+(defun funcall? (fn &rest args)
   (if (null fn)
       nil
-      `(funcall ,fn ,@args)))
-
+      (apply fn args)))
 
 (defmacro do-event (event key-up-fn key-down-fn mouse-motion-fn quit-fn)
   `(loop while (pal-ffi:poll-event ,event)
@@ -173,22 +171,20 @@
         (cond
 
           ((= type pal-ffi:+key-up-event+)
-           (let ((keysym (cffi:foreign-slot-value ,event 'pal-ffi:keyboard-event 'pal-ffi:keysym)))
-             (setf (gethash (cffi:foreign-enum-keyword 'pal-ffi:sdl-key (cffi:foreign-slot-value keysym 'pal-ffi:keysym 'pal-ffi:sym))
-                            *pressed-keys*)
+           (let* ((keysym (cffi:foreign-slot-value ,event 'pal-ffi:keyboard-event 'pal-ffi:keysym))
+                  (sym (cffi:foreign-enum-keyword 'pal-ffi:sdl-key (cffi:foreign-slot-value keysym 'pal-ffi:keysym 'pal-ffi:sym))))
+             (setf (gethash sym *pressed-keys*)
                    nil)
-             (funcall? ,key-up-fn
-                       (cffi:foreign-enum-keyword 'pal-ffi:sdl-key (cffi:foreign-slot-value keysym 'pal-ffi:keysym 'pal-ffi:sym)))))
+             (funcall? ,key-up-fn sym)))
 
           ((= type pal-ffi:+key-down-event+)
-           (let ((keysym (cffi:foreign-slot-value ,event 'pal-ffi:keyboard-event 'pal-ffi:keysym)))
-             (setf (gethash (cffi:foreign-enum-keyword 'pal-ffi:sdl-key (cffi:foreign-slot-value keysym 'pal-ffi:keysym 'pal-ffi:sym))
-                            *pressed-keys*)
+           (let* ((keysym (cffi:foreign-slot-value ,event 'pal-ffi:keyboard-event 'pal-ffi:keysym))
+                  (sym (cffi:foreign-enum-keyword 'pal-ffi:sdl-key (cffi:foreign-slot-value keysym 'pal-ffi:keysym 'pal-ffi:sym))))
+             (setf (gethash sym *pressed-keys*)
                    t)
              (if ,key-down-fn
-                 (funcall ,key-down-fn
-                          (cffi:foreign-enum-keyword 'pal-ffi:sdl-key (cffi:foreign-slot-value keysym 'pal-ffi:keysym 'pal-ffi:sym)))
-                 (when (eq (cffi:foreign-enum-keyword 'pal-ffi:sdl-key (cffi:foreign-slot-value keysym 'pal-ffi:keysym 'pal-ffi:sym)) :key-escape)
+                 (funcall ,key-down-fn sym)
+                 (when (eq sym :key-escape)
                    (return-from event-loop)))))
 
           ((= type pal-ffi:+mouse-motion-event+)
@@ -199,15 +195,15 @@
           ((= type pal-ffi:+mouse-button-up-event+)
            (let* ((button (cffi:foreign-slot-value ,event 'pal-ffi:mouse-button-event 'pal-ffi:button))
                   (keysym (read-from-string (format nil ":key-mouse-~a" button))))
-             (setf (gethash keysym
-                            *pressed-keys*) nil)
+             (setf (gethash keysym *pressed-keys*)
+                   nil)
              (funcall? ,key-up-fn keysym)))
 
           ((= type pal-ffi:+mouse-button-down-event+)
            (let* ((button (cffi:foreign-slot-value ,event 'pal-ffi:mouse-button-event 'pal-ffi:button))
                   (keysym (read-from-string (format nil ":key-mouse-~a" button))))
-             (setf (gethash keysym
-                            *pressed-keys*) t)
+             (setf (gethash keysym *pressed-keys*)
+                   t)
              (funcall? ,key-down-fn keysym)))
 
           ((= type pal-ffi:+quit-event+)

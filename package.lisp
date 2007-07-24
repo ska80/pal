@@ -387,7 +387,7 @@
            #:with-resource
 
            #:randomly
-           #:relt
+           #:random-elt
            #:clamp
            #:do-n
            #:curry
