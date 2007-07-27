@@ -39,7 +39,8 @@
                      :colors (list (list 255 0 0 255)
                                    (list 255 0 0 255)
                                    (list 0 0 255 255)
-                                   (list 0 0 255 255))) ;; just draws a nice gradient background
+                                   (list 0 0 255 255)))
+      ;; just draws a nice gradient background
 
       ;; And draw a pattern of image-1s on the top of it. Not exactly seamless tiles but hey...
       (draw-rectangle (v 0 0) 800 600 255 255 255 255 :fill (tag 'image-1))
@@ -51,6 +52,7 @@
                     :valign :middle
                     :halign :middle
                     :angle (incf a .1)))
+
 
       ;; Press left mousebutton to capture part of the screen as a new cursor
       (when (key-pressed-p :key-mouse-1)

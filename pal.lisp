@@ -452,24 +452,32 @@
 
 (defunct screen-to-array (pos width height)
     (vec pos u16 width u16 height)
-  (let ((array (make-array (list width height))))
-    (cffi:with-foreign-object (image :unsigned-char (* width height 3))
-      (pal-ffi:gl-read-pixels (truncate (vx pos))
-                              (- *height* (truncate (vy pos)) height)
+  (let* ((x (truncate (vx pos)))
+         (y (truncate (vy pos)))
+         (rowsize (* width 4))
+         (array (make-array (list width height))))
+    (cffi:with-foreign-object (image :unsigned-char (* (1+ width) (1+ height) 4))
+      (pal-ffi:gl-read-pixels x
+                              (- *height* y height)
                               width height
-                              pal-ffi:+gl-rgb+ pal-ffi:+gl-unsigned-byte+
+                              pal-ffi:+gl-rgba+ pal-ffi:+gl-unsigned-byte+
                               image)
       (do-n (x width y height)
-        (setf (aref array x (- height y 1))
-              (list (cffi:mem-aref image :unsigned-char (+ (* y width 3)
-                                                           (* x 3)))
-                    (cffi:mem-aref image :unsigned-char (+ (* y width 3)
-                                                           (* x 3)
-                                                           1))
-                    (cffi:mem-aref image :unsigned-char (+ (* y width 3)
-                                                           (* x 3)
-                                                           2))
-                    255)))
+        (let ((yrow (* y rowsize)))
+          (declare (type fixnum yrow))
+          (setf (aref array x (- height y 1))
+                (list (cffi:mem-aref image :unsigned-char (+ yrow
+                                                             (* x 4)
+                                                             0))
+                      (cffi:mem-aref image :unsigned-char (+ yrow
+                                                             (* x 4)
+                                                             1))
+                      (cffi:mem-aref image :unsigned-char (+ yrow
+                                                             (* x 4)
+                                                             2))
+                      (cffi:mem-aref image :unsigned-char (+ yrow
+                                                             (* x 4)
+                                                             3))))))
       array)))
 
 
@@ -596,10 +604,7 @@
        (with-gl pal-ffi:+gl-line-loop+
          (pal-ffi:gl-vertex2f (vx pos) (vy pos))
          (pal-ffi:gl-vertex2f (+ (vx pos) width) (vy pos))
-         (pal-ffi:gl-vertex2f (+ (vx pos) width) (vy pos))
          (pal-ffi:gl-vertex2f (+ (vx pos) width) (+ (vy pos) height))
-         (pal-ffi:gl-vertex2f (+ (vx pos) width) (+ (vy pos) height))
-         (pal-ffi:gl-vertex2f (vx pos) (+ (vy pos) height))
          (pal-ffi:gl-vertex2f (vx pos) (+ (vy pos) height)))))
     (t
      (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-current-bit+ pal-ffi:+gl-enable-bit+))
