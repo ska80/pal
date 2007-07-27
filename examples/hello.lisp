@@ -37,3 +37,17 @@
           (pal:draw-text "Hello from PAL" (pal:v 0 0)))))))
 
 ;; (hello-2)
+
+
+(defun hello-3 ()
+  (pal:with-pal (:fps 10000)
+    (pal:event-loop ()
+      (pal:clear-screen 0 0 0)
+      (loop for x from 0 to 800 by (pal:get-text-size "Hello from PAL")
+         do
+         (loop for y from 20 to 600 by 10
+            do
+            (pal:draw-text "Hello from PAL" (pal:v x y))))
+      (pal:draw-fps))))
+
+;; (hello-3)

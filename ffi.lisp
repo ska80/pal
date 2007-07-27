@@ -438,8 +438,7 @@
 (defstruct font
   (image nil :type (or boolean image))
   (glyphs nil :type (or boolean (simple-vector 255)))
-  (height 0 :type u11)
-  (first-dl 0 :type u11))
+  (height 0 :type u11))
 
 (defstruct music
   music)
@@ -478,7 +477,6 @@
 (defmethod free-resource ((resource font))
   (when (font-image resource)
     (free-resource (font-image resource))
-    (gl-delete-lists (font-first-dl resource) 255)
     (setf (font-image resource) nil)))
 
 (defmethod free-resource ((resource image))
@@ -848,22 +846,6 @@
   (height :int))
 
 (cffi:defcfun ("glGetError" gl-get-error) :int)
-
-(cffi:defcfun ("glGenLists" gl-gen-lists) :uint
-  (range :int))
-
-(cffi:defcfun ("glNewList" gl-new-list) :void
-  (n :uint)
-  (mode :int))
-
-(cffi:defcfun ("glEndList" gl-end-list) :void)
-
-(cffi:defcfun ("glCallList" gl-call-list) :void
-  (n :uint))
-
-(cffi:defcfun ("glDeleteLists" gl-delete-lists) :void
-  (list :uint)
-  (range :int))
 
 (cffi:defcfun ("glGetIntegerv" %gl-get-integer) :void
   (value :int)

@@ -1,10 +1,9 @@
 ;; Notes:
-;; smoothed polygons, guess circle segment count
+;; smoothed polygons, guess circle segment count, add start/end args to draw-circle
 ;; calculate max-texture-size
 ;; fix the fps
 ;; clean up the do-event
 ;; open quads and other optimisations
-;; test with latest sdl libs
 
 
 (declaim (optimize (speed 3)
@@ -769,16 +768,8 @@
               glyph)))
     (let ((font (pal-ffi:register-resource (pal-ffi:make-font :image (load-image (concatenate 'string font ".png"))
                                                               :height (glyph-height (aref glyphs 32))
-                                                              :first-dl (pal-ffi:gl-gen-lists 255)
                                                               :glyphs glyphs))))
       (set-image (pal-ffi:font-image font))
-      (loop
-         for g across (pal-ffi:font-glyphs font)
-         for dl from 0 to 255
-         do
-         (pal-ffi:gl-new-list (+ (pal-ffi:font-first-dl font) dl) pal-ffi:+gl-compile+)
-         (draw-glyph (pal-ffi:font-image font) g)
-         (pal-ffi:gl-end-list))
       font)))
 
 (defun glyph-from-line (line)
@@ -791,36 +782,38 @@
                 :height (fourth coords)
                 :xoff (sixth coords))))
 
-(defun draw-glyph (image g)
+(defun draw-glyph (x height image g)
+  (declare (type single-float x height) (type image image) (type glyph g))
   (let* ((vx (vx (glyph-pos g)))
          (vy (vy (glyph-pos g)))
          (width (coerce (glyph-width g) 'single-float))
-         (height (coerce (glyph-height g) 'single-float))
          (tx1 (/ vx (pal-ffi:image-texture-width image)))
          (ty1 (/ vy (pal-ffi:image-texture-height image)))
          (tx2 (/ (+ vx width) (pal-ffi:image-texture-width image)))
          (ty2 (/ (+ vy height) (pal-ffi:image-texture-height image))))
-    (with-gl pal-ffi:+gl-quads+
-      (pal-ffi:gl-tex-coord2f tx1 ty1)
-      (pal-ffi:gl-vertex2f 0f0 0f0)
-      (pal-ffi:gl-tex-coord2f tx2 ty1)
-      (pal-ffi:gl-vertex2f width 0f0)
-      (pal-ffi:gl-tex-coord2f tx2 ty2)
-      (pal-ffi:gl-vertex2f width height)
-      (pal-ffi:gl-tex-coord2f tx1 ty2)
-      (pal-ffi:gl-vertex2f 0f0 height)))
-  (translate (v (+ (glyph-width g) (glyph-xoff g)) 0)))
+    (pal-ffi:gl-tex-coord2f tx1 ty1)
+    (pal-ffi:gl-vertex2f x 0f0)
+    (pal-ffi:gl-tex-coord2f tx2 ty1)
+    (pal-ffi:gl-vertex2f (+ x width) 0f0)
+    (pal-ffi:gl-tex-coord2f tx2 ty2)
+    (pal-ffi:gl-vertex2f (+ x width) height)
+    (pal-ffi:gl-tex-coord2f tx1 ty2)
+    (pal-ffi:gl-vertex2f x height)
+    (+ (glyph-width g) (glyph-xoff g))))
 
 (defunct draw-text (text pos &optional font)
     (vec pos simple-string text (or font boolean) font)
   (with-transformation (:pos pos)
-    (let* ((font (if font
+    (let* ((dx 0f0)
+           (font (if font
                      font
                      (tag 'default-font)))
-           (first-dl (pal-ffi:font-first-dl font)))
+           (height (coerce (pal-ffi:font-height font) 'single-float)))
       (set-image (pal-ffi:font-image font))
-      (loop for char across text do
-           (pal-ffi:gl-call-list (+ first-dl (char-code char)))))))
+      (with-gl pal-ffi:+gl-quads+
+        (loop for char across text do
+             (incf dx
+                   (draw-glyph dx height (pal-ffi:font-image font) (aref (pal-ffi:font-glyphs font) (char-code char)))))))))
 
 (declaim (inline get-font-height))
 (defunct get-font-height (&optional font)

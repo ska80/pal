@@ -15,12 +15,6 @@
            #:+gl-smooth+
            #:+gl-compile+
            #:+gl-points+
-           #:gl-gen-lists
-           #:gl-new-list
-           #:font-first-dl
-           #:gl-end-list
-           #:gl-call-list
-           #:gl-delete-lists
            #:free
            #:calloc
            #:music-music
