@@ -4,7 +4,7 @@
 ;; fix the fps
 ;; clean up the do-event
 ;; open quads and other optimisations
-;; test with latest cffi and sdl libs
+;; test with latest sdl libs
 
 
 (declaim (optimize (speed 3)
@@ -56,7 +56,7 @@
   (when *pal-running*
     (close-pal))
   (pal-ffi:init (logior pal-ffi:+init-video+ pal-ffi:+init-audio+))
-  (pal-ffi:open-audio 22050 pal-ffi:+audio-s16+ 2 2048)
+  (pal-ffi:open-audio 22050 pal-ffi:+audio-s16+ 0 2048)
   (pal-ffi:gl-set-attribute pal-ffi:+gl-depth-size+ 0)
   (pal-ffi:gl-set-attribute pal-ffi:+gl-doublebuffer+ 1)
   (pal-ffi:gl-pixel-store pal-ffi:+gl-pack-alignment+ 1)
@@ -699,15 +699,20 @@
 (defun load-sample (file &optional (volume 255))
   "Volume 0-255"
   (let ((sample (pal-ffi:load-wav (data-path file))))
-    (pal-ffi:volume-chunk (pal-ffi:sample-chunk sample) (1+ (truncate volume 2)))
-    sample))
+    (assert (not (cffi:null-pointer-p sample)))
+    (let ((sample (pal-ffi:register-resource (pal-ffi::make-sample :chunk sample))))
+      (pal-ffi:volume-chunk (pal-ffi:sample-chunk sample) (1+ (truncate volume 2)))
+      sample)))
 
 (declaim (inline play-sample))
 (defun play-sample (sample &key (loops nil) (angle 0) (volume 255))
-  "Angle is an integer between 0-360. Volume is an integer between 0-255."
-  (let ((channel (pal-ffi:play-channel -1 (pal-ffi:sample-chunk sample) (if (numberp loops)
-                                                                            loops
-                                                                            0))))
+  "Loops is: t = forever, nil = once, number = number of loops. Angle is an integer between 0-360. Volume is an integer between 0-255."
+  (let ((channel (pal-ffi:play-channel -1 (pal-ffi:sample-chunk sample) (cond
+                                                                          ((numberp loops)
+                                                                           loops)
+                                                                          ((eq t loops)
+                                                                           -1)
+                                                                          (t 0)))))
     (pal-ffi:set-position channel (truncate angle) (- 255 volume))
     channel))
 
@@ -720,15 +725,17 @@
 ;;; Music
 
 (defun load-music (file)
-  (pal-ffi:load-music (data-path file)))
+  (let ((music (pal-ffi:load-music (data-path file))))
+    (assert (not (cffi:null-pointer-p music)))
+    (let ((music (pal-ffi::make-music :music music)))
+      (pal-ffi:register-resource music))))
 
 (defun play-music (music &key (loops t) (volume 255))
   "Volume 0-255. Loops is: t = forever, nil = once, number = number of loops"
-  (let ((loops (truncate loops)))
-    (pal-ffi:volume-music (1+ (truncate volume 2)))
-    (pal-ffi:play-music (pal-ffi:music-music music) (cond ((eq loops t) -1)
-                                                          ((null loops) 0)
-                                                          (t loops)))))
+  (pal-ffi:volume-music (1+ (truncate volume 2)))
+  (pal-ffi:play-music (pal-ffi:music-music music) (cond ((eq loops t) -1)
+                                                        ((null loops) 0)
+                                                        (t (truncate loops)))))
 
 (defun set-music-volume (volume)
   "Volume 0-255"

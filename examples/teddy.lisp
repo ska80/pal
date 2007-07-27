@@ -14,7 +14,20 @@
 (define-tags plane (load-image "lego-plane.png" t) ; loads the image with smooth interpolation, nicer for rotated images
              teddy (load-image "yellow-teddy.png" t)
              tile (load-image "ground.png")
-             cursor (load-image "cursor.png"))
+             cursor (load-image "cursor.png")
+             engine (load-sample "Flight.wav")
+
+             ;; djbierman-hrrrr.mp3 is licensed under
+             ;; Creative Commons License Deed
+             ;; Attribution 2.0
+             ;; You are free:
+             ;; to Share -- to copy, distribute, display, and perform the work
+             ;; to Remix -- to make derivative works
+             ;; Under the following conditions:
+             ;; Attribution. You must attribute the work in the manner specified by the author or licensor.
+             ;; For any reuse or distribution, you must make clear to others the license terms of this work.
+             ;; Any of these conditions can be waived if you get permission from the copyright holder.
+             music (load-music "djbierman+hrrrr.ogg"))
 
 
 ;; main classes
@@ -75,9 +88,13 @@
 
     (setf *sprites* nil)
 
+
     ;; Hide the mouse cursor and use cursor.png instead. 18,18 is the offset ("hotspot") for the cursor image
     ;; Other possible options to cursor are: t - show the default cursor, nil - hide all cursors
     (set-cursor (tag 'cursor) (v 18 18))
+
+    (play-music (tag 'music))
+    (play-sample (tag 'engine) :loops t :volume 30)
 
     (make-instance 'plane :alt 20)
     (dotimes (i 20)

@@ -472,8 +472,8 @@
 
 (defmethod free-resource ((resource music))
   (when (music-music resource)
-    (setf (music-music resource) nil)
-    (free-music (music-music resource))))
+    (free-music (music-music resource))
+    (setf (music-music resource) nil)))
 
 (defmethod free-resource ((resource font))
   (when (font-image resource)
@@ -483,34 +483,18 @@
 
 (defmethod free-resource ((resource image))
   (when (> (image-texture resource) 0)
-    (setf (image-texture resource) 0)
-    (gl-delete-texture (image-texture resource))))
+    (gl-delete-texture (image-texture resource))
+    (setf (image-texture resource) 0)))
 
 (defmethod free-resource ((resource sample))
   (when (sample-chunk resource)
-    (setf (sample-chunk resource) nil)
-    (free-chunk (sample-chunk resource))))
+    (free-chunk (sample-chunk resource))
+    (setf (sample-chunk resource) nil)))
 
 (defun free-all-resources ()
   (dolist (r *resources*)
     (free-resource r))
   (assert (null *resources*)))
-
-
-
-(cffi:defctype new-music :pointer)
-(defmethod cffi:translate-from-foreign (value (name (eql 'new-music)))
-  (assert (not (cffi:null-pointer-p value)))
-  (let ((music (make-music :music value)))
-    (register-resource music)
-    music))
-
-(cffi:defctype new-sample :pointer)
-(defmethod cffi:translate-from-foreign (value (name (eql 'new-sample)))
-  (assert (not (cffi:null-pointer-p value)))
-  (let ((sample (make-sample :chunk value)))
-    (register-resource sample)
-    sample))
 
 
 ;; Main SDL
@@ -609,7 +593,7 @@
 (cffi:defcfun ("Mix_FreeChunk" free-chunk) :void
   (chunk :pointer))
 
-(cffi:defcfun ("Mix_LoadWAV_RW" load-wav-rw) new-sample
+(cffi:defcfun ("Mix_LoadWAV_RW" load-wav-rw) :pointer
   (io :pointer) (int :int))
 
 (defun load-wav (file)
@@ -621,7 +605,7 @@
 (cffi:defcfun ("Mix_SetPosition" set-position) :int
   (channel :int) (angle :int16) (distance :uint8))
 
-(cffi:defcfun ("Mix_QuickLoad_RAW" quickload-raw) new-sample
+(cffi:defcfun ("Mix_QuickLoad_RAW" quickload-raw) :pointer
   (uint8-ptr :pointer) (length :uint32))
 
 (cffi:defcfun ("Mix_PlayChannelTimed" play-channel-timed) :int
@@ -632,7 +616,7 @@
 
 (cffi:defcfun ("Mix_HaltMusic" halt-music) :int)
 
-(cffi:defcfun ("Mix_LoadMUS" load-music) new-music
+(cffi:defcfun ("Mix_LoadMUS" load-music) :pointer
   (file :string))
 
 (cffi:defcfun ("Mix_PlayMusic" play-music) :int
