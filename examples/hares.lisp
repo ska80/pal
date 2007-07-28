@@ -71,11 +71,7 @@
 
     (event-loop ()
 
-      (draw-image* (tag 'bg)
-                   (v 0 0)
-                   (v 0 0)
-                   (get-screen-width)
-                   (get-screen-height))
+      (draw-rectangle (v 0 0) 800 600 255 255 255 255 :fill (tag 'bg))
       (with-blend (:mode *blend-mode*)
         (dolist (i *sprites*)
           (draw i)

@@ -1,3 +1,31 @@
+1.0, July 28 2007
+
+- Numerous bugfixes and little improvements.
+
+- Much faster DRAW-TEXT.
+
+- Removed DRAW-QUAD in favour of DRAW-POLYGON*
+
+- Added ALIGN arguments to DRAW-IMAGE
+
+- DRAW-IMAGE-PART renamed to DRAW-IMAGE*
+
+- Added some examples.
+
+- Automatic coersion of numeric types.
+
+- RELT renamed to RANDOM-ELEMENT.
+
+- Added DRAW-ARROW, DRAW-CIRCLE, LOAD-IMAGE-TO-ARRAY, SCREEN-TO-ARRAY, IMAGE-FROM-FN.
+
+- Tag thunks must now return only objects of type RESOURCE.
+
+- Many small and not so small changes in the API.
+
+- Fixed problems loading the foreign .so's under Linux.
+
+
+
 Release 3, July 3 2007
 
 - Changed some of the parameters to sound functions. Volume is now defined as a
