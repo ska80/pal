@@ -16,7 +16,6 @@
 (defclass sprite ()
   ((pos :accessor pos-of :initarg :pos :initform (v 0 0))
    (vel :accessor vel-of :initarg :vel :initform (v 0 0))
-   (image :accessor image-of :initarg :image)
    (angle :accessor angle-of :initarg :angle :initform 0)
    (r :accessor r-of :initarg :r)
    (g :accessor g-of :initarg :g)
@@ -29,12 +28,14 @@
 
 (defmethod draw ((s sprite))
   (set-blend-color (r-of s) (g-of s) (b-of s) 255)
-  (draw-image (image-of s)
-              (pos-of s)
+  (draw-image (tag 'hare)
+              (v- (pos-of s) (v* (v (image-width (tag 'hare))
+                                    (image-height (tag 'hare)))
+                                 (* (scale-of s) .5)))
               :halign :middle
               :valign :middle
-              :angle (angle-of s)
-              :scale (scale-of s)))
+              :scale (scale-of s)
+              :angle (angle-of s)))
 
 (defmethod act ((s sprite))
   (setf (angle-of s) (mod (+ (angle-of s) 1) 360))
@@ -53,13 +54,12 @@
 
 
 (defun example ()
-  (with-pal (:width 800 :height 600 :fullscreenp nil :fps 6000 :paths (merge-pathnames "examples/" pal::*pal-directory*))
+  (with-pal (:width 800 :height 600 :fullscreenp t :fps 6000 :paths (merge-pathnames "examples/" pal::*pal-directory*))
     (setf *sprites* nil)
     (set-cursor nil)
     (dotimes (i 500)
       (make-instance 'sprite
-                     :image (tag 'hare)
-                     :scaled (- (random .2) .1)
+                     :scaled (- (random .1) .05)
                      :scale (+ (random 1.5) .5)
                      :r (random 255)
                      :g (random 255)

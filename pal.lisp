@@ -3,7 +3,6 @@
 ;; calculate max-texture-size
 ;; fix the fps
 ;; clean up the do-event
-;; open quads and other optimisations
 
 
 (declaim (optimize (speed 3)
@@ -33,6 +32,8 @@
 (defvar *mouse-y* 0)
 (defvar *current-image* nil)
 (defvar *max-texture-size* 0)
+(defvar *quads-open* nil)
+
 
 (declaim (type list *messages*)
          (type list *clip-stack*)
@@ -47,6 +48,7 @@
          (type fixnum *fps*)
          (type u11 *max-fps*)
          (type u11 *delay*)
+         (type boolean *quads-open*)
          (type (or boolean image) *cursor*)
          (type (or boolean image) *current-image*))
 
@@ -79,6 +81,7 @@
           *max-fps* (truncate 1000 fps)
           *ticks* (pal-ffi:get-tick)
           *clip-stack* nil
+          *quads-open* nil
           *fps* 1
           *delay* 0
           *new-fps* 0
@@ -220,10 +223,10 @@
       (draw-text m (v 0 (incf y fh))))))
 
 (defun update-screen ()
+  (close-quads)
   (let ((e (pal-ffi:gl-get-error)))
     (unless (= e 0)
       (error "GL error ~a" e)))
-
   (setf *new-fps* (max 1 (the fixnum (- (pal-ffi:get-tick) *ticks*))))
   (setf *fps* (truncate (+ *fps* *new-fps*) 2))
   (if (> *delay* 1)
@@ -239,7 +242,6 @@
       (with-default-settings
         (draw-image *cursor* (v- (get-mouse-pos) *cursor-offset*))
         (draw-messages)))
-
   (pal-ffi:gl-swap-buffers))
 
 (declaim (inline get-screen-width))
@@ -257,6 +259,7 @@
 (declaim (inline clear-screen))
 (defunct clear-screen (r g b)
     (u8 r u8 g u8 b)
+  (close-quads)
   (pal-ffi:gl-clear-color (/ r 255f0)
                           (/ g 255f0)
                           (/ b 255f0)
@@ -286,11 +289,13 @@
 
 (defunct push-clip (x y width height)
     (u16 x u16 y u16 width u16 height)
+  (close-quads)
   (pal-ffi:gl-scissor x y width height)
   (pal-ffi:gl-enable pal-ffi:+gl-scissor-test+)
   (push (vector x y width height) *clip-stack*))
 
 (defun pop-clip ()
+  (close-quads)
   (pop *clip-stack*)
   (if *clip-stack*
       (let ((r (first *clip-stack*)))
@@ -302,9 +307,23 @@
 
 ;; State
 
+
+(declaim (inline open-quads))
+(defun open-quads ()
+  (unless *quads-open*
+    (pal-ffi:gl-begin pal-ffi:+gl-quads+)
+    (setf *quads-open* t)))
+
+(declaim (inline close-quads))
+(defun close-quads ()
+  (when *quads-open*
+    (pal-ffi:gl-end)
+    (setf *quads-open* nil)))
+
 (declaim (inline set-blend-mode))
 (defunct set-blend-mode (mode)
     (symbol mode)
+  (close-quads)
   (case mode
     ((nil) (pal-ffi:gl-disable pal-ffi:+gl-blend+))
     (:blend (pal-ffi:gl-enable pal-ffi:+gl-blend+)
@@ -315,20 +334,24 @@
 (declaim (inline rotate))
 (defunct rotate (angle)
     (single-float angle)
+  (close-quads)
   (pal-ffi:gl-rotatef angle 0f0 0f0 1f0))
 
 (declaim (inline scale))
 (defunct scale (x y)
     (single-float x single-float y)
+  (close-quads)
   (pal-ffi:gl-scalef x y 1f0))
 
 (declaim (inline translate))
 (defunct translate (vec)
     (vec vec)
+  (close-quads)
   (pal-ffi:gl-translatef (vx vec) (vy vec) 0f0))
 
 (declaim (inline reset-blend-mode))
 (defun reset-blend-mode ()
+  (close-quads)
   (set-blend-mode :blend)
   (set-blend-color 255 255 255 255))
 
@@ -341,9 +364,9 @@
 (defunct set-image (image)
     (image image)
   (unless (eq image *current-image*)
+    (close-quads)
     (setf *current-image* image)
     (pal-ffi:gl-bind-texture pal-ffi:+gl-texture-2d+ (pal-ffi::image-texture image))))
-
 
 
 
@@ -385,6 +408,7 @@
                              (fourth pixel))))))
 
 (defun image-from-fn (width height smoothp fn)
+  (close-quads)
   (let* ((mode pal-ffi:+gl-rgb+)
          (width (min 1024 width))
          (height (min 1024 height))
@@ -452,6 +476,7 @@
 
 (defunct screen-to-array (pos width height)
     (vec pos u16 width u16 height)
+  (close-quads)
   (let* ((x (truncate (vx pos)))
          (y (truncate (vy pos)))
          (rowsize (* width 4))
@@ -479,7 +504,6 @@
                                                              (* x 4)
                                                              3))))))
       array)))
-
 
 (defunct draw-image (image pos &key angle scale valign halign)
     (image image vec pos (or boolean number) angle (or boolean number) scale symbol halign symbol valign)
@@ -514,17 +538,19 @@
               (pal-ffi:gl-vertex2f (+ x width) (+ y height))
               (pal-ffi:gl-tex-coord2f 0f0 ty2)
               (pal-ffi:gl-vertex2f x (+ y height)))))
-        (let ((x (vx pos))
-              (y (vy pos)))
+        (let* ((x (vx pos))
+               (y (vy pos))
+               (width (+ x width))
+               (height (+ y height)))
           (with-gl pal-ffi:+gl-quads+
             (pal-ffi:gl-tex-coord2f 0f0 0f0)
             (pal-ffi:gl-vertex2f x y)
             (pal-ffi:gl-tex-coord2f tx2 0f0)
-            (pal-ffi:gl-vertex2f (+ x width) y)
+            (pal-ffi:gl-vertex2f width y)
             (pal-ffi:gl-tex-coord2f tx2 ty2)
-            (pal-ffi:gl-vertex2f (+ x width) (+ y height))
+            (pal-ffi:gl-vertex2f width height)
             (pal-ffi:gl-tex-coord2f 0f0 ty2)
-            (pal-ffi:gl-vertex2f x (+ y height)))))))
+            (pal-ffi:gl-vertex2f x height))))))
 
 
 (defunct draw-image* (image from-pos to-pos width height)
@@ -577,6 +603,7 @@
 (declaim (inline draw-point))
 (defunct draw-point (pos r g b a &key (size 1f0) smoothp)
     (vec pos u8 r u8 g u8 b u8 a single-float size boolean smoothp)
+  (close-quads)
   (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-current-bit+ pal-ffi:+gl-enable-bit+))
   (pal-ffi:gl-disable pal-ffi:+gl-texture-2d+)
   (if smoothp
@@ -607,6 +634,7 @@
          (pal-ffi:gl-vertex2f (+ (vx pos) width) (+ (vy pos) height))
          (pal-ffi:gl-vertex2f (vx pos) (+ (vy pos) height)))))
     (t
+     (close-quads)
      (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-current-bit+ pal-ffi:+gl-enable-bit+))
      (pal-ffi:gl-disable pal-ffi:+gl-texture-2d+)
      (pal-ffi:gl-color4ub r g b a)
@@ -617,6 +645,7 @@
     (list points u8 r u8 g u8 b u8 a (or image boolean) fill single-float size)
   (cond
     ((image-p fill)
+     (close-quads)
      (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-current-bit+))
      (set-image fill)
      (pal-ffi:gl-color4ub r g b a)
@@ -643,6 +672,7 @@
          (dolist (p points)
            (pal-ffi:gl-vertex2f (vx p) (vy p))))))
     (t
+     (close-quads)
      (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-current-bit+ pal-ffi:+gl-enable-bit+))
      (pal-ffi:gl-color4ub r g b a)
      (pal-ffi:gl-disable pal-ffi:+gl-texture-2d+)
@@ -653,6 +683,7 @@
 
 (defunct draw-polygon* (points &key image tex-coords colors)
     (list points list tex-coords list colors (or boolean image) image)
+  (close-quads)
   (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-current-bit+ pal-ffi:+gl-enable-bit+))
   (cond
     ((and image tex-coords)

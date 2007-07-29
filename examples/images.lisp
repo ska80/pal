@@ -29,7 +29,8 @@
 
 
 (with-pal (:paths (merge-pathnames "examples/" pal::*pal-directory*))
-  (set-cursor (tag 'image-3)) ;; sets image-3 as a mouse cursor image
+  (set-cursor (tag 'image-3))
+  ;; sets image-3 as a mouse cursor image
   (let ((a 0))
     (event-loop ()
       (draw-polygon* (list (v 0 0)

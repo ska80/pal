@@ -79,6 +79,7 @@
 
 (defmacro with-blend ((&key (mode t) color) &body body)
   `(progn
+     (close-quads)
      (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-color-buffer-bit+ pal-ffi:+gl-current-bit+ pal-ffi:+gl-enable-bit+))
      ,(unless (eq mode t)
               `(set-blend-mode ,mode))
@@ -86,6 +87,7 @@
             `(set-blend-color (first ,color) (second ,color) (third ,color) (fourth ,color)))
      (prog1 (progn
               ,@body)
+       (close-quads)
        (pal-ffi:gl-pop-attrib))))
 
 (defmacro with-clipping ((x y width height) &body body)
@@ -97,6 +99,7 @@
 
 (defmacro with-transformation ((&key pos angle scale) &body body)
   `(progn
+     (close-quads)
      (pal-ffi:gl-push-matrix)
      ,(when pos
             `(translate ,pos))
@@ -108,16 +111,23 @@
                  (scale ,s ,s))))
      (prog1 (progn
               ,@body)
+       (close-quads)
        (pal-ffi:gl-pop-matrix))))
 
 (defmacro with-gl (mode &body body)
-  `(progn
-     (pal-ffi:gl-begin ,mode)
-     ,@body
-     (pal-ffi:gl-end)))
+  (if (eq mode 'pal-ffi:+gl-quads+)
+      `(progn
+         (open-quads)
+         ,@body)
+      `(progn
+         (close-quads)
+         (pal-ffi:gl-begin ,mode)
+         ,@body
+         (pal-ffi:gl-end))))
 
 (defmacro with-line-settings (smoothp size r g b a &body body)
   `(progn
+     (close-quads)
      (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-current-bit+ pal-ffi:+gl-line-bit+ pal-ffi:+gl-enable-bit+))
      (pal-ffi:gl-disable pal-ffi:+gl-texture-2d+)
      (set-blend-color ,r ,g ,b ,a)

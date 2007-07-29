@@ -44,8 +44,8 @@
 
 (defmethod act ((s sprite))
   (v+! (pos-of s) (vel-of s))
-  (v*! (vel-of s) .90)
-  (v*! (vel-of s) .90))
+  (v*! (vel-of s) .98)
+  (v*! (vel-of s) .98))
 
 (defmethod draw ((s sprite))
   (draw-image (image-of s)
