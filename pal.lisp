@@ -1,9 +1,9 @@
 ;; Notes:
-;; smoothed polygons, guess circle segment count, add start/end args to draw-circle
+;; smoothed polygons, guess circle segment count, add start/end args to draw-circle, use triangle-fan
 ;; calculate max-texture-size
 ;; fix the fps
 ;; clean up the do-event
-
+;; check for redundant close-quads, make sure rotations etc. are optimised.
 
 (declaim (optimize (speed 3)
                    (safety 3)))
@@ -105,7 +105,6 @@
     (clear-screen 0 0 0)
     (reset-tags)
     (define-tags default-font (load-font "default-font"))
-
     (add-path *pal-directory*)
     (add-path *default-pathname-defaults*)
     (if (listp paths)
@@ -505,52 +504,68 @@
                                                              3))))))
       array)))
 
-(defunct draw-image (image pos &key angle scale valign halign)
-    (image image vec pos (or boolean number) angle (or boolean number) scale symbol halign symbol valign)
+
+(defunct draw-image (image pos &key (angle 0f0) (scale 1f0) (valign :left) (halign :top))
+    (image image vec pos single-float angle single-float scale symbol halign symbol valign)
   (set-image image)
-  (let ((width (image-width image))
-        (height (image-height image))
-        (tx2 (pal-ffi:image-tx2 image))
-        (ty2 (pal-ffi:image-ty2 image)))
-    (if (or angle scale valign halign)
-        (with-transformation ()
-          (translate pos)
-          (when angle
-            (rotate angle))
-          (when scale
-            (scale scale scale)) ;; :-)
-          (let ((x (case halign
-                     (:right (coerce (- width) 'single-float))
-                     (:left 0f0)
-                     (:middle (- (/ width 2f0)))
-                     (otherwise 0f0)))
-                (y (case valign
-                     (:bottom (coerce (- height) 'single-float))
-                     (:top 0f0)
-                     (:middle (- (/ height 2f0)))
-                     (otherwise 0f0))))
-            (with-gl pal-ffi:+gl-quads+
-              (pal-ffi:gl-tex-coord2f 0f0 0f0)
-              (pal-ffi:gl-vertex2f x y)
-              (pal-ffi:gl-tex-coord2f tx2 0f0)
-              (pal-ffi:gl-vertex2f (+ x width) y)
-              (pal-ffi:gl-tex-coord2f tx2 ty2)
-              (pal-ffi:gl-vertex2f (+ x width) (+ y height))
-              (pal-ffi:gl-tex-coord2f 0f0 ty2)
-              (pal-ffi:gl-vertex2f x (+ y height)))))
-        (let* ((x (vx pos))
-               (y (vy pos))
-               (width (+ x width))
-               (height (+ y height)))
-          (with-gl pal-ffi:+gl-quads+
-            (pal-ffi:gl-tex-coord2f 0f0 0f0)
-            (pal-ffi:gl-vertex2f x y)
-            (pal-ffi:gl-tex-coord2f tx2 0f0)
-            (pal-ffi:gl-vertex2f width y)
-            (pal-ffi:gl-tex-coord2f tx2 ty2)
-            (pal-ffi:gl-vertex2f width height)
-            (pal-ffi:gl-tex-coord2f 0f0 ty2)
-            (pal-ffi:gl-vertex2f x height))))))
+  (if (and (= angle 0f0) (= scale 1f0) (eq valign :left) (eq halign :top))
+      (let* ((tx2 (pal-ffi:image-tx2 image))
+             (ty2 (pal-ffi:image-ty2 image))
+             (x (vx pos))
+             (y (vy pos))
+             (width (+ x (image-width image)))
+             (height (+ y (image-height image))))
+        (with-gl pal-ffi:+gl-quads+
+          (pal-ffi:gl-tex-coord2f 0f0 0f0)
+          (pal-ffi:gl-vertex2f x y)
+          (pal-ffi:gl-tex-coord2f tx2 0f0)
+          (pal-ffi:gl-vertex2f width y)
+          (pal-ffi:gl-tex-coord2f tx2 ty2)
+          (pal-ffi:gl-vertex2f width height)
+          (pal-ffi:gl-tex-coord2f 0f0 ty2)
+          (pal-ffi:gl-vertex2f x height)))
+      (let* ((tx2 (pal-ffi:image-tx2 image))
+             (ty2 (pal-ffi:image-ty2 image))
+             (width (* (image-width image) scale))
+             (height (* (image-height image) scale))
+             (b (v+ (v-rotate (v width 0) angle) pos))
+             (c (v+ (v-rotate (v width height) angle) pos))
+             (d (v+ (v-rotate (v 0 height) angle) pos)))
+        (with-gl pal-ffi:+gl-quads+
+          (pal-ffi:gl-tex-coord2f 0f0 0f0)
+          (pal-ffi:gl-vertex2f (vx pos) (vy pos))
+          (pal-ffi:gl-tex-coord2f tx2 0f0)
+          (pal-ffi:gl-vertex2f (vx b) (vy b))
+          (pal-ffi:gl-tex-coord2f tx2 ty2)
+          (pal-ffi:gl-vertex2f (vx c) (vy c))
+          (pal-ffi:gl-tex-coord2f 0f0 ty2)
+          (pal-ffi:gl-vertex2f (vx d) (vy d))))
+      ;; (with-transformation ()
+      ;; (translate pos)
+      ;; (when angle
+      ;; (rotate angle))
+      ;; (when scale
+      ;; (scale scale scale)) ;; :-)
+      ;; (let ((x (case halign
+      ;; (:right (coerce (- width) 'single-float))
+      ;; (:left 0f0)
+      ;; (:middle (- (/ width 2f0)))
+      ;; (otherwise 0f0)))
+      ;; (y (case valign
+      ;; (:bottom (coerce (- height) 'single-float))
+      ;; (:top 0f0)
+      ;; (:middle (- (/ height 2f0)))
+      ;; (otherwise 0f0))))
+      ;; (with-gl pal-ffi:+gl-quads+
+      ;; (pal-ffi:gl-tex-coord2f 0f0 0f0)
+      ;; (pal-ffi:gl-vertex2f x y)
+      ;; (pal-ffi:gl-tex-coord2f tx2 0f0)
+      ;; (pal-ffi:gl-vertex2f (+ x width) y)
+      ;; (pal-ffi:gl-tex-coord2f tx2 ty2)
+      ;; (pal-ffi:gl-vertex2f (+ x width) (+ y height))
+      ;; (pal-ffi:gl-tex-coord2f 0f0 ty2)
+      ;; (pal-ffi:gl-vertex2f x (+ y height)))))
+      ))
 
 
 (defunct draw-image* (image from-pos to-pos width height)

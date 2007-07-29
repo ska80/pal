@@ -80,7 +80,7 @@
 
 
 (defun example ()
-  (with-pal (:fullscreenp nil :width 800 :height 600 :fullscreenp nil :fps 60 :paths (merge-pathnames "examples/" pal::*pal-directory*))
+  (with-pal (:fullscreenp nil :width 800 :height 600 :fps 60 :paths (merge-pathnames "examples/" pal::*pal-directory*))
     ;; inits PAL, the args used are the default values.
     ;; PATHS is a pathname or list of pathnames that PAL uses to find the resource files loaded with LOAD-* functions.
     ;; By default PATHS contains the PAL source directory and value of *default-pathname-defaults*
