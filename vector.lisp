@@ -9,6 +9,7 @@
 (defstruct (vec (:conc-name v))
   (x 0 :type component) (y 0 :type component))
 
+
 (declaim (inline component))
 (defunct component (x)
     (number x)
@@ -28,19 +29,19 @@
 
 (declaim (inline rad))
 (defunct rad (degrees)
-    (number degrees)
-  (component (* (/ pi 180) degrees)))
+    (component degrees)
+  (* (/ pi 180) degrees))
 
 (declaim (inline deg))
 (defunct deg (radians)
-    (number radians)
-  (component (* (/ 180 pi) radians)))
+    (component radians)
+  (* (/ 180 pi) radians))
 
 
 
 (declaim (inline angle-v))
 (defunct angle-v (angle)
-    (number angle)
+    (component angle)
   (v (sin (rad angle)) (- (cos (rad angle)))))
 
 (declaim (inline vec-angle))
@@ -145,10 +146,10 @@
 (defunct v-rotate (v a)
     (vec v component a)
   (let ((a (rad a)))
-    (vf (- (* (cos a) (vx v))
-           (* (sin a) (vy v)))
-        (+ (* (sin a) (vx v))
-           (* (cos a) (vy v))))))
+    (v (- (* (cos a) (vx v))
+          (* (sin a) (vy v)))
+       (+ (* (sin a) (vx v))
+          (* (cos a) (vy v))))))
 
 (declaim (inline v-dot))
 (defunct v-dot (a b)
@@ -166,10 +167,11 @@
 
 (defunct v-normalize (v)
     (vec v)
-  (if (/= (v-magnitude v) 0.0)
-      (vf (/ (vx v) (v-magnitude v))
-          (/ (vy v) (v-magnitude v)))
-      (vf 0.0 0.0)))
+  (let ((m (v-magnitude v)))
+    (if (/= m 0f0)
+        (vf (/ (vx v) m)
+            (/ (vy v) m))
+        (vf 0f0 0f0))))
 
 (defunct v-direction (from-vector to-vector)
     (vec from-vector vec to-vector)
@@ -201,7 +203,7 @@
                   b)
               a)))))
 
-(defunct point-in-line (a b p)
+(defunct point-in-line-p (a b p)
     (vec a vec b vec p)
   (let ((d (v-direction a b)))
     (if (< (abs (+ (v-dot d (v-direction a p))
@@ -229,8 +231,8 @@
           nil
           (let ((p (vf (/ (- (* b1 c2) (* b2 c1)) denom)
                        (/ (- (* a2 c1) (* a1 c2)) denom))))
-            (if (and (point-in-line la1 la2 p)
-                     (point-in-line lb1 lb2 p))
+            (if (and (point-in-line-p la1 la2 p)
+                     (point-in-line-p lb1 lb2 p))
                 p
                 nil))))))
 
@@ -250,24 +252,24 @@
         (v-distance cp p)
         nil)))
 
-(defunct point-inside-rectangle (topleft width height pos)
-    (vec topleft vec pos component width component height)
+(defunct point-inside-rectangle-p (topleft width height point)
+    (vec topleft vec point component width component height)
   (let* ((x1 (vx topleft))
          (y1 (vy topleft))
          (x2 (+ x1 width))
          (y2 (+ y1 height))
-         (x (vx pos))
-         (y (vy pos)))
+         (x (vx point))
+         (y (vy point)))
     (if (and (> x x1) (< x x2)
              (> y y1) (< y y2))
         t nil)))
 
-(declaim (inline point-inside-circle))
-(defunct point-inside-circle (co r p)
+(declaim (inline point-inside-circle-p))
+(defunct point-inside-circle-p (co r p)
     (vec co vec p component r)
   (<= (v-distance co p) r))
 
-(declaim (inline circles-overlap))
-(defunct circles-overlap (c1 r1 c2 r2)
+(declaim (inline circles-overlap-p))
+(defunct circles-overlap-p (c1 r1 c2 r2)
     (vec c1 vec c2 component r1 component r2)
   (<= (v-distance c1 c2) (+ r2 r1)))
