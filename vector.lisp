@@ -1,5 +1,5 @@
 (declaim (optimize (speed 3)
-                   (safety 3)))
+                   (safety 2)))
 
 (in-package :pal)
 

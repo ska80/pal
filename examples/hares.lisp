@@ -54,7 +54,7 @@
 
 
 (defun example ()
-  (with-pal (:width 800 :height 600 :fullscreenp t :fps 6000 :paths (merge-pathnames "examples/" pal::*pal-directory*))
+  (with-pal (:width 800 :height 600 :fullscreenp nil :fps 6000 :paths (merge-pathnames "examples/" pal::*pal-directory*))
     (setf *sprites* nil)
     (set-cursor nil)
     (dotimes (i 500)
