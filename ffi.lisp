@@ -1,5 +1,5 @@
 (declaim (optimize (speed 3)
-                   (safety 0)))
+                   (safety 1)))
 
 (in-package :pal-ffi)
 
@@ -456,42 +456,67 @@
 
 (defgeneric register-resource (resource))
 (defgeneric free-resource (resource))
+(defgeneric holdsp (holder resource))
+
+
+
+(defmethod holdsp (holder resource)
+  nil)
+
+(defun heldp (resource)
+  (find-if (lambda (holder) (holdsp holder resource)) *resources*))
 
 (defmethod register-resource (resource)
   (assert (resource-p resource))
   (push resource *resources*)
   resource)
 
-(defmethod free-resource :before (resource)
-  (assert (typep resource 'resource)))
 
-(defmethod free-resource :after (resource)
-  (pal::reset-tags :resource resource)
-  (setf *resources* (remove resource *resources*)))
+
+(defmethod free-resource :around (resource)
+  (assert (typep resource 'resource))
+  (when (and (not (heldp resource)) (find resource *resources*))
+    (call-next-method)
+    (pal::reset-tags :resource resource)
+    (setf *resources* (remove resource *resources*))))
+
+
 
 (defmethod free-resource ((resource music))
-  (when (music-music resource)
-    (free-music (music-music resource))
-    (setf (music-music resource) nil)))
+  (assert (music-music resource))
+  (free-music (music-music resource))
+  (setf (music-music resource) nil))
+
+
 
 (defmethod free-resource ((resource font))
-  (when (font-image resource)
-    (free-resource (font-image resource))
-    (setf (font-image resource) nil)))
+  (assert (font-image resource))
+  (let ((image (font-image resource)))
+    (setf (font-image resource) nil)
+    (free-resource image)))
+
+(defmethod holdsp ((font font) (image image))
+  (eq (font-image font) image))
+
+
 
 (defmethod free-resource ((resource image))
-  (when (> (image-texture resource) 0)
-    (gl-delete-texture (image-texture resource))
-    (setf (image-texture resource) 0)))
+  (assert (> (image-texture resource) 0))
+  (gl-delete-texture (image-texture resource))
+  (setf (image-texture resource) 0))
+
+
 
 (defmethod free-resource ((resource sample))
-  (when (sample-chunk resource)
-    (free-chunk (sample-chunk resource))
-    (setf (sample-chunk resource) nil)))
+  (assert (sample-chunk resource))
+  (free-chunk (sample-chunk resource))
+  (setf (sample-chunk resource) nil))
+
+
 
 (defun free-all-resources ()
-  (dolist (r *resources*)
-    (free-resource r))
+  (loop while *resources* do
+       (free-resource (first *resources*)))
   (assert (null *resources*)))
 
 

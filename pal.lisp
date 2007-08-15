@@ -2,13 +2,13 @@
 ;; smoothed polygons, guess circle segment count, add start/end args to draw-circle, use triangle-fan
 ;; calculate max-texture-size
 ;; fix the fps
-;; clean up the do-event
 ;; check for redundant close-quads, make sure rotations etc. are optimised.
 ;; newline support for draw-text
+;; optimise gl state handling
 
 
 (declaim (optimize (speed 3)
-                   (safety 2)))
+                   (safety 1)))
 
 (in-package :pal)
 
@@ -62,7 +62,6 @@
   (pal-ffi:open-audio 22050 pal-ffi:+audio-s16+ 0 2048)
   (pal-ffi:gl-set-attribute pal-ffi:+gl-depth-size+ 0)
   (pal-ffi:gl-set-attribute pal-ffi:+gl-doublebuffer+ 1)
-  (pal-ffi:gl-pixel-store pal-ffi:+gl-pack-alignment+ 1)
   (let ((surface (pal-ffi::set-video-mode
                   width
                   height
@@ -104,6 +103,7 @@
     (pal-ffi:gl-ortho 0d0 (coerce *width* 'double-float) (coerce *height* 'double-float) 0d0 -1d0 1d0)
     (pal-ffi:gl-matrix-mode pal-ffi:+gl-modelview+)
     (pal-ffi:gl-load-identity)
+    (pal-ffi:gl-pixel-store pal-ffi:+gl-pack-alignment+ 1)
     (clear-screen 0 0 0)
     (reset-tags)
     (define-tags default-font (load-font "default-font"))
@@ -195,7 +195,7 @@
 (defun get-mouse-y ()
   *mouse-y*)
 
-(defun dispatch-event (&key key-up-fn key-down-fn mouse-motion-fn quit-fn)
+(defun handle-events (&key key-up-fn key-down-fn mouse-motion-fn quit-fn)
   (block event-loop
     (cffi:with-foreign-object (event :char 500)
       (do-event event key-up-fn key-down-fn mouse-motion-fn quit-fn))))
@@ -214,20 +214,15 @@
 
 ;; Screen
 
-(declaim (inline draw-messages))
 (defun draw-messages ()
-  (let ((y 0)
-        (fh (get-font-height)))
+  (let ((fh (get-font-height))
+         (y 0))
     (declare (type u11 y fh))
     (dolist (m *messages*)
       (declare (type simple-string m))
       (draw-text m (v 0 (incf y fh))))))
 
 (defun update-screen ()
-  (close-quads)
-  (let ((e (pal-ffi:gl-get-error)))
-    (unless (= e 0)
-      (error "GL error ~a" e)))
   (setf *new-fps* (max 1 (the fixnum (- (pal-ffi:get-tick) *ticks*))))
   (setf *fps* (truncate (+ *fps* *new-fps*) 2))
   (if (> *delay* 1)
@@ -243,7 +238,11 @@
       (with-default-settings
         (draw-image *cursor* (v- (get-mouse-pos) *cursor-offset*))
         (draw-messages)))
-  (pal-ffi:gl-swap-buffers))
+  (close-quads)
+  (pal-ffi:gl-swap-buffers)
+  (let ((e (pal-ffi:gl-get-error)))
+    (unless (= e 0)
+      (error "GL error ~a" e))))
 
 (declaim (inline get-screen-width))
 (defun get-screen-width ()
@@ -879,5 +878,5 @@
 
 (defun message (object)
   (setf *messages* (append *messages* (list (prin1-to-string object))))
-  (when (> (length *messages*) (- (truncate (get-screen-height) (get-font-height)) 2))
+  (when (> (length *messages*) (- (truncate (get-screen-height) (get-font-height)) 1))
     (pop *messages*)))

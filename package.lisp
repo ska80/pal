@@ -367,6 +367,7 @@
            #:free-resource
            #:free-all-resources
            #:define-tags
+           #:add-tag           
            #:tag
            #:sample
            #:music
@@ -386,6 +387,7 @@
            #:do-n
            #:curry
 
+           #:handle-events           
            #:key-pressed-p
            #:keysym-char
            #:test-keys

@@ -1,5 +1,5 @@
 (declaim (optimize (speed 3)
-                   (safety 2)))
+                   (safety 1)))
 
 (in-package :pal)
 
@@ -9,9 +9,14 @@
 (defmacro define-tags (&body tags)
   `(progn
      ,@(mapcar (lambda (r)
-                 `(setf (gethash ',(first r) *tags*)
-                        (cons (lambda () ,(second r)) nil)))
+                 `(add-tag ',(first r) (lambda () ,(second r))))
                (loop for (a b) on tags by #'cddr collect (list a b)))))
+
+
+(defun add-tag (tag fn)
+  (assert (and (symbolp tag) (functionp fn)))
+  (setf (gethash tag *tags*)
+        (cons fn nil)))
 
 (defun reset-tags (&key resource)
   (maphash (if resource
@@ -61,7 +66,7 @@
            (declare ,@decls)
            ,@body))))
 
-
+;; (declaim (ftype (function (double-float double-float) double-float) sss))
 
 (defmacro with-resource ((resource init-form) &body body)
   `(let ((,resource ,init-form))
@@ -170,6 +175,7 @@
 
 (declaim (inline funcall?))
 (defun funcall? (fn &rest args)
+  (declare (type (or function symbol) fn) (dynamic-extent args))
   (if (null fn)
       nil
       (apply fn args)))

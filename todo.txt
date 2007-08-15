@@ -9,8 +9,6 @@ TODO:
 
 - Box/box/line/circle etc. overlap functions, faster v-dist.
 
-- Improved texture handling.
-
 - Fix the FPS limiter, the results could be a lot smoother.
 
 - Correct aspect ratio when fullscreen on widescreen displays.

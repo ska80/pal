@@ -88,7 +88,6 @@
 
     (setf *sprites* nil)
 
-
     ;; Hide the mouse cursor and use cursor.png instead. 18,18 is the offset ("hotspot") for the cursor image
     ;; Other possible options to cursor are: t - show the default cursor, nil - hide all cursors
     (set-cursor (tag 'cursor) (v 18 18))

@@ -70,7 +70,7 @@
                      :angle (random 360.0)))
 
     (event-loop ()
-
+      ;;(+ 1 (v 10 10))
       (draw-rectangle (v 0 0) 800 600 255 255 255 255 :fill (tag 'bg))
       (with-blend (:mode *blend-mode*)
         (dolist (i *sprites*)
