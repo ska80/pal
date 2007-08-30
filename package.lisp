@@ -6,6 +6,7 @@
            #:+gl-line-smooth+
            #:make-font
            #:+gl-pack-alignment+
+           #:gl-flush
            #:gl-read-pixels
            #:gl-pixel-store
            #:+gl-scissor-test+

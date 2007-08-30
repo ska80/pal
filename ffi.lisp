@@ -718,6 +718,8 @@
 (defconstant +gl-point-smooth+ #xB10)
 (defconstant +gl-point+ #x0)
 
+(cffi:defcfun ("glFlush" gl-flush) :void)
+
 (cffi:defcfun ("glAlphaFunc" gl-alpha-func) :void
   (func :int)
   (ref :float))
