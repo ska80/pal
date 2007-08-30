@@ -901,7 +901,7 @@
 
 #+win32 (defun get-application-folder ()
           (cffi:with-foreign-object (path :char 4096)
-            (shgetfolderpatha (cffi:null-pointer) #x001c (cffi:null-pointer) 0 path)
+            (shgetfolderpatha (cffi:null-pointer) #x001a (cffi:null-pointer) 0 path)
             (concatenate 'string (cffi:foreign-string-to-lisp path) "/")))
 
 (cffi:defcfun "calloc" :pointer (nelem :uint) (elsize :uint))
