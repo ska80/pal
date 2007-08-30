@@ -1,7 +1,6 @@
 ;; Notes:
-;; smoothed polygons, guess circle segment count, add start/end args to draw-circle, use triangle-fan
+;; calculate circle segment count, add start/end args to draw-circle, use triangle-fan for circles
 ;; calculate max-texture-size
-;; fix the fps
 ;; check for redundant close-quads, make sure rotations etc. are optimised.
 ;; newline support for draw-text
 ;; optimise gl state handling
@@ -225,10 +224,10 @@
 (defun update-screen ()
   (setf *new-fps* (max 1 (the fixnum (- (pal-ffi:get-tick) *ticks*))))
   (setf *fps* (truncate (+ *fps* *new-fps*) 2))
-  (if (> *delay* 1)
+  (if (> *delay* 0)
       (decf *delay*))
   (when (< *fps* *max-fps*)
-    (incf *delay* 2))
+    (incf *delay* (- *max-fps* *fps*)))
   (setf *ticks* (pal-ffi:get-tick))
   (pal-ffi:delay *delay*)
   (if (or (eq t *cursor*) (eq nil *cursor*))

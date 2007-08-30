@@ -93,7 +93,7 @@
     (set-cursor (tag 'cursor) (v 18 18))
 
     (play-music (tag 'music))
-    (play-sample (tag 'engine) :loops t :volume 30)
+    (play-sample (tag 'engine) :loops t :volume 50)
 
     (make-instance 'plane :alt 20)
     (dotimes (i 20)

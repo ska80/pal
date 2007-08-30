@@ -9,8 +9,6 @@ TODO:
 
 - Box/box/line/circle etc. overlap functions, faster v-dist.
 
-- Fix the FPS limiter, the results could be a lot smoother.
-
 - Correct aspect ratio when fullscreen on widescreen displays.
 
 - I would really like to see it run on OS X.
