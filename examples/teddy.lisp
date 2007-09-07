@@ -92,7 +92,7 @@
     ;; Other possible options to cursor are: t - show the default cursor, nil - hide all cursors
     (set-cursor (tag 'cursor) (v 18 18))
 
-    (play-music (tag 'music))
+    (play-music (tag 'music) :fade 10000)
     (play-sample (tag 'engine) :loops t :volume 50)
 
     (make-instance 'plane :alt 20)
@@ -137,6 +137,7 @@
 
       ;; TEST-KEYS is used to check if some key is currently pressed, _all_ the matching forms are evaluated.
       (test-keys
+        (:key-f (halt-music 10000))
         (:key-1 (setf *blend-mode* nil)
                 (message *blend-mode*))
         (:key-2 (setf *blend-mode* :blend)

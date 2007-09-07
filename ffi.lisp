@@ -639,8 +639,14 @@
 
 (cffi:defcfun ("Mix_HaltMusic" halt-music) :int)
 
+(cffi:defcfun ("Mix_FadeOutMusic" fade-out-music) :int
+  (fade :int))
+
 (cffi:defcfun ("Mix_LoadMUS" load-music) :pointer
   (file :string))
+
+(cffi:defcfun ("Mix_FadeInMusic" fade-in-music) :int
+  (music :pointer) (loops :int) (fade :int))
 
 (cffi:defcfun ("Mix_PlayMusic" play-music) :int
   (music :pointer) (loops :int))

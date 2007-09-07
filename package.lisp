@@ -4,6 +4,8 @@
   (:use :common-lisp)
   (:export #:+NO-EVENT+
            #:+gl-line-smooth+
+           #:fade-out-music
+           #:fade-in-music
            #:make-font
            #:+gl-pack-alignment+
            #:gl-flush

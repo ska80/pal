@@ -56,7 +56,7 @@
   (when *pal-running*
     (close-pal))
   (pal-ffi:init (logior pal-ffi:+init-video+ pal-ffi:+init-audio+))
-  (pal-ffi:open-audio 22050 pal-ffi:+audio-s16+ 0 2048)
+  (pal-ffi:open-audio 22050 pal-ffi:+audio-s16+ 0 1024)
   (pal-ffi:gl-set-attribute pal-ffi:+gl-depth-size+ 0)
   (pal-ffi:gl-set-attribute pal-ffi:+gl-doublebuffer+ 1)
   (let ((surface (pal-ffi::set-video-mode
@@ -762,19 +762,26 @@
     (let ((music (pal-ffi::make-music :music music)))
       (pal-ffi:register-resource music))))
 
-(defun play-music (music &key (loops t) (volume 255))
+(defun play-music (music &key (loops t) (volume 255) (fade 0))
   "Volume 0-255. Loops is: t = forever, nil = once, number = number of loops"
   (pal-ffi:volume-music (1+ (truncate volume 2)))
-  (pal-ffi:play-music (pal-ffi:music-music music) (cond ((eq loops t) -1)
-                                                        ((null loops) 0)
-                                                        (t (truncate loops)))))
+  (if (> fade 0)
+      (pal-ffi:fade-in-music (pal-ffi:music-music music) (cond ((eq loops t) -1)
+                                                               ((null loops) 0)
+                                                               (t (truncate loops)))
+                             fade)
+      (pal-ffi:play-music (pal-ffi:music-music music) (cond ((eq loops t) -1)
+                                                            ((null loops) 0)
+                                                            (t (truncate loops))))))
 
 (defun set-music-volume (volume)
   "Volume 0-255"
   (pal-ffi:volume-music (1+ (truncate volume 2))))
 
-(defun halt-music ()
-  (pal-ffi:halt-music))
+(defun halt-music (&optional fade)
+  (if fade
+      (pal-ffi:fade-out-music fade)
+      (pal-ffi:halt-music)))
 
 
 

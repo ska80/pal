@@ -4,9 +4,6 @@ TODO:
 
 - Implement image mirroring, tiles and animation.
 
-- Add more complex sound/music handling functions, channel set volume/dir,
-  fade/etc. music.
-
 - Box/box/line/circle etc. overlap functions, faster v-dist.
 
 - Correct aspect ratio when fullscreen on widescreen displays.

@@ -4,7 +4,7 @@
 
 
 (define-tags
-  ;; IMAGE-FROM-FN builds and image by calling the FN with x and y coordinates.
+  ;; IMAGE-FROM-FN builds an image by calling the FN with x and y coordinates.
   ;; FN should return at least three VALUES for r, g and b and an optional fourth value for alpha.
   image-1 (image-from-fn 255 255 nil
                          (lambda (x y)
@@ -12,7 +12,7 @@
                                    (truncate (+ 127 (* 128 (cos (/ y 10)))))
                                    (truncate (+ 127 (* 128 (cos (/ (+ x y) 10)))))
                                    (truncate (+ 127 (* 128 (cos (/ (- x y) 10))))))))
-  ;; IMAGE-FROM-ARRAY builds and image from an 2d array of (list r g b &optional a)
+  ;; IMAGE-FROM-ARRAY builds an image from a 2d array of (list r g b &optional a)
   ;; Try setting the SMOOTHP parameter to T and see what happens.
   image-2 (image-from-array nil #2A(((255 255 255 128) (0 0 0) (255 255 255))
                                     ((255 255 255) (255 255 0) (255 255 255))
@@ -55,7 +55,9 @@
                     :angle (incf a .1)))
 
 
-      ;; Press left mousebutton to capture part of the screen as a new cursor
+      ;; Press left mousebutton to capture part of the screen as a new cursor.
+      ;; Note that altough the allocated images are released when PAL is closed we really should manually release
+      ;; the old cursor image with FREE-RESOURCE if we keep allocating lots of new images.     
       (when (key-pressed-p :key-mouse-1)
         (set-cursor (image-from-array
                      nil
