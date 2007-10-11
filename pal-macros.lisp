@@ -4,7 +4,13 @@
 (in-package :pal)
 
 
-(defvar *tags* (make-hash-table :test 'eq))
+;; TAGs are lazily evaluated thunks that load some resource (image, font etc.) when called with (TAG tag-name).
+;; Their values are cached and automatically cleaned when resource is freed.
+;; NOTE: Once defined the TAG definitions persist thru the whole Lisp session. Only the result values get initialized.
+
+
+(defvar *tags* (make-hash-table :test 'eq)
+  "*TAGS* is a hashtable of TAG-NAME -> (FUNCTION . RESOURCE) we use to hold TAGS.")
 
 (defmacro define-tags (&body tags)
   `(progn
@@ -18,6 +24,8 @@
   (setf (gethash tag *tags*)
         (cons fn nil)))
 
+
+;; Clean all the values from tag table. Internal use only!
 (defun reset-tags (&key resource)
   (maphash (if resource
                (lambda (k v)
@@ -28,6 +36,8 @@
                  (declare (ignore k))
                  (setf (cdr v) nil)))
            *tags*))
+
+
 
 (defun tag (name)
   (declare (type symbol name))
@@ -49,6 +59,7 @@
                   (float `(coerce ,value 'float)))))
 
 
+;; Messy. Like DEFUN but automatically coerce some types (defined up there -^ ) and declare their types.
 (defmacro defunct (name lambda-list declarations &body body)
   (let* ((decls (loop for (a b) on declarations by #'cddr collecting
                      `(type ,a ,b)))
@@ -66,9 +77,10 @@
            (declare ,@decls)
            ,@body))))
 
-;; (declaim (ftype (function (double-float double-float) double-float) sss))
+
 
 (defmacro with-resource ((resource init-form) &body body)
+  "Bind the result of INIT-FORM to RESOURCE, evaluate the BODY and free the RESOURCE."
   `(let ((,resource ,init-form))
      (prog1 (progn
               ,@body)
@@ -76,6 +88,7 @@
 
 
 (defmacro with-default-settings (&body body)
+  "Evaluate BODY with default transformations and blend settings."
   `(with-transformation ()
      (with-blend (:mode :blend :color '(255 255 255 255))
        (pal-ffi:gl-load-identity)
@@ -83,6 +96,7 @@
 
 
 (defmacro with-blend ((&key (mode t) color) &body body)
+  "Evaluate BODY with blend options set to MODE and COLOR. Color is a list of (r g b a) values."
   `(progn
      (close-quads)
      (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-color-buffer-bit+ pal-ffi:+gl-current-bit+ pal-ffi:+gl-enable-bit+))
@@ -96,6 +110,7 @@
        (pal-ffi:gl-pop-attrib))))
 
 (defmacro with-clipping ((x y width height) &body body)
+  "Evaluate BODY with clipping. Only the window area defined by X, Y, WIDTH and HEIGHT is affected by drawing primitives."
   `(progn
      (push-clip ,x ,y ,width ,height)
      (prog1 (progn
@@ -103,6 +118,7 @@
        (pop-clip))))
 
 (defmacro with-transformation ((&key pos angle scale) &body body)
+  "Evaluate BODY with translation POS, rotation ANGLE and scaling SCALE. Transformations are applied in that order."
   `(progn
      (close-quads)
      (pal-ffi:gl-push-matrix)
@@ -120,6 +136,7 @@
        (pal-ffi:gl-pop-matrix))))
 
 (defmacro with-gl (mode &body body)
+  "Wrap BODY between (gl-begin MODE) and (gl-end). When used with +GL-QUADS+ gl-begin/end are possibly completely left out."
   (if (eq mode 'pal-ffi:+gl-quads+)
       `(progn
          (open-quads)
@@ -144,6 +161,7 @@
      (pal-ffi:gl-pop-attrib)))
 
 (defmacro randomly (p &body body)
+  "There is a 1/P chance of the BODY to be evaluated."
   `(when (= (random ,p) 0)
      ,@body))
 
@@ -180,6 +198,7 @@
       nil
       (apply fn args)))
 
+;; Messy...
 (defmacro do-event (event key-up-fn key-down-fn mouse-motion-fn quit-fn)
   `(loop while (pal-ffi:poll-event ,event)
       do
@@ -210,7 +229,7 @@
 
           ((= type pal-ffi:+mouse-button-up-event+)
            (let* ((button (cffi:foreign-slot-value ,event 'pal-ffi:mouse-button-event 'pal-ffi:button))
-                  (keysym (read-from-string (format nil ":key-mouse-~a" button))))
+                  (keysym (read-from-string (format nil ":key-mouse-~a" button)))) ;; Mousekeys are handled as keycodes :KEY-MOUSE-n
              (setf (gethash keysym *pressed-keys*)
                    nil)
              (funcall? ,key-up-fn keysym)))
@@ -240,6 +259,7 @@
 
 
 (defmacro with-pal (args &body body)
+  "Open PAL and evaluate BODY. After BODY returns call CLOSE-PAL."
   `(progn
      (apply 'open-pal (list ,@args))
      (unwind-protect

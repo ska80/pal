@@ -21,9 +21,10 @@
   (:unix (:or "libGL.so")))
 
 #+win32 (cffi:define-foreign-library shell32
-          (:windows "shell32.dll"))
+          (:windows "shell32.dll")) ;; We use a function from shell32.dll to find the users application data directory.
 
 (defun load-foreign-libraries ()
+  "Load all the foreing libs. Useful when dumping and restarting images with CLisp."
   (cffi:use-foreign-library sdl)
   (cffi:use-foreign-library sdl-mixer)
   (cffi:use-foreign-library sdl-image)
@@ -37,6 +38,9 @@
 (deftype u11 () '(unsigned-byte 11))
 (deftype u16 () '(unsigned-byte 16))
 
+
+
+;; Basic SDL ffi definitions
 
 (defconstant +init-audio+ #x00000010)
 (defconstant +init-video+ #x00000020)
@@ -168,6 +172,9 @@
 (defconstant +resize-event+ 16)
 (defconstant +expose-event+ 17)
 
+
+;; Keycodes used by PAL.
+;; In addition to these :KEY-MOUSE-n are used for mousekeys.
 (cffi:defcenum sdl-key
   (:key-unknown 0)
   (:key-first 0)
@@ -424,16 +431,17 @@
 
 ;; Resources
 
-(defvar *resources* ())
+
+(defvar *resources* () "List of currently loaded resources.")
 
 (defstruct image
-  (texture 0 :type u11)
-  (texture-width 0 :type u11)
-  (texture-height 0 :type u11)
-  (tx2 0 :type single-float)
-  (ty2 0 :type single-float)
-  (height 0 :type u11)
-  (width 0 :type u11))
+  (texture 0 :type u11)                 ; "GL texture id for image."
+  (texture-width 0 :type u11) ; "Actual (rounded up to power of two) width of texture."
+  (texture-height 0 :type u11) ; "Actual (rounded up to power of two) height of texture."
+  (tx2 0 :type single-float)           ; "tx2 = width / texture-width"
+  (ty2 0 :type single-float)          ; "ty2 = height / texture-width"
+  (height 0 :type u11)            ; "Height of textures visible part."
+  (width 0 :type u11))             ; "Width of textures visible part."
 
 (defstruct font
   (image nil :type (or boolean image))
@@ -454,8 +462,13 @@
 
 
 
-(defgeneric register-resource (resource))
-(defgeneric free-resource (resource))
+(defgeneric register-resource (resource)
+  (:documentation "Add RESOURCE to *RESOURCES*"))
+
+;; NOTE: Does not free the resource if it is held by some other resource.
+(defgeneric free-resource (resource)
+  (:documentation "Free the RESOURCE and all system resources used by it. Also resets the TAGs related to the resource."))
+
 (defgeneric holdsp (holder resource))
 
 
@@ -496,7 +509,7 @@
     (free-resource image)))
 
 (defmethod holdsp ((font font) (image image))
-  (eq (font-image font) image))
+  (eq (font-image font) image)) ;; Font resources need to hold the image they are using for the glyphs.
 
 
 
@@ -515,12 +528,13 @@
 
 
 (defun free-all-resources ()
+  "Free all loaded resources and reset the TAGS"
   (loop while *resources* do
        (free-resource (first *resources*)))
   (assert (null *resources*)))
 
 
-;; Main SDL
+;; Main SDL functions
 
 (cffi:defcfun ("SDL_Init" init) :int
   (flags :uint))
@@ -903,6 +917,7 @@
   (value :int))
 
 
+;; Used to get the application data folder.
 #+win32 (cffi:defcfun "SHGetFolderPathA" :int (owner :pointer) (folder :int) (handle :pointer) (flags :int) (path :pointer))
 
 #+win32 (defun get-application-folder ()
@@ -910,5 +925,9 @@
             (shgetfolderpatha (cffi:null-pointer) #x001a (cffi:null-pointer) 0 path)
             (concatenate 'string (cffi:foreign-string-to-lisp path) "/")))
 
+
+;; Used to allocate zeroed memory.
 (cffi:defcfun "calloc" :pointer (nelem :uint) (elsize :uint))
+
+;; Can we just use cffi:foreign-free? Just in case...
 (cffi:defcfun "free" :void (ptr :pointer))

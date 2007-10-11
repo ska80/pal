@@ -44,7 +44,7 @@
     (component angle)
   (v (sin (rad angle)) (- (cos (rad angle)))))
 
-(declaim (inline vec-angle))
+(declaim (inline v-angle))
 (defunct v-angle (vec)
     (vec vec)
   (mod (deg (atan (vx vec)

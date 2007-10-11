@@ -12,9 +12,10 @@
 (defparameter *pal-directory* (make-pathname :directory (pathname-directory *load-pathname*)
                                              :host (pathname-host *load-pathname*)
                                              :device (pathname-device *load-pathname*)))
-(defvar *messages* nil)
-(defvar *pal-running* nil)
-(defvar *title* "")
+
+(defvar *messages* nil "List of messages draw on screen with MESSAGE.")
+(defvar *pal-running* nil "T if PAL is already running.")
+(defvar *title* "" "PAL windows title. Also used for creating the path to applications data directory.")
 (defvar *ticks* 0)
 (defvar *clip-stack* nil)
 (defvar *fps* 0)
@@ -29,9 +30,9 @@
 (defvar *cursor-offset* (v 0 0))
 (defvar *mouse-x* 0)
 (defvar *mouse-y* 0)
-(defvar *current-image* nil)
-(defvar *max-texture-size* 0)
-(defvar *quads-open* nil)
+(defvar *current-image* nil "Currently set OpenGL texture.")
+(defvar *max-texture-size* 0 "Maximum size of OpenGL texture supported by system.")
+(defvar *quads-open* nil "T if (GL-BEGIN +GL-QUADS+) is already in effect.")
 
 
 (declaim (type list *messages*)
@@ -136,6 +137,7 @@
     (setf *pal-running* nil)))
 
 (defun get-application-folder ()
+  "Return the application data directory to be used for saving user specific data. PAL windows title is used when forming the directory pathname. Actual behaviour depends on the operating system."
   (assert (> (length *title* ) 0))
   #-win32 (ensure-directories-exist (merge-pathnames (make-pathname :directory (list :relative (concatenate 'string "." *title*)))
                                                      (user-homedir-pathname)))
@@ -143,15 +145,18 @@
                                                      (parse-namestring (pal-ffi:get-application-folder)))))
 
 (defun get-application-file (file)
+  "Return a full path to a FILE in the application data directory. PAL windows title is used when forming the directory pathname. Actual behaviour depends on the operating system."
   (merge-pathnames file (get-application-folder)))
 
 (defun add-path (path)
+  "Add PATH to the list of paths that are searched when loading resources."
   (if #-:clisp (probe-file path)
       #+:clisp (ext:probe-directory path)
       (pushnew path *data-paths*)
       (format *debug-io* "Illegal data path: ~a" path)))
 
 (defun data-path (file)
+  "Find a FILE from the search paths."
   (let ((result nil))
     (dolist (i *data-paths* result)
       (when (probe-file (merge-pathnames file i))
@@ -161,6 +166,7 @@
         (error "Data file not found: ~a" file))))
 
 (defun get-gl-info ()
+  "Return some information about systems OpenGL implementation."
   (list :vendor (pal-ffi:gl-get-string pal-ffi:+gl-vendor+)
         :rendered (pal-ffi:gl-get-string pal-ffi:+gl-renderer+)
         :version (pal-ffi:gl-get-string pal-ffi:+gl-version+)
@@ -174,6 +180,7 @@
 (declaim (inline key-pressed-p))
 (defunct key-pressed-p (keysym)
     (symbol keysym)
+  "Return T if key KEYSYM is currently pressed down."
   (gethash keysym *pressed-keys*))
 
 (defunct keysym-char (keysym)
@@ -198,6 +205,7 @@
       (do-event event key-up-fn key-down-fn mouse-motion-fn quit-fn))))
 
 (defun wait-keypress ()
+  "Wait until some key is pressed down and released."
   (let ((key nil))
     (event-loop (:key-down-fn (lambda (k)
                                 (setf key k)
@@ -220,6 +228,7 @@
       (draw-text m (v 0 (incf y fh))))))
 
 (defun update-screen ()
+  "Updates PAL window."
   (setf *new-fps* (max 1 (the fixnum (- (pal-ffi:get-tick) *ticks*))))
   (setf *fps* (truncate (+ *fps* *new-fps*) 2))
   (if (> *delay* 0)
@@ -270,6 +279,7 @@
         *mouse-y* y))
 
 (defun set-cursor (image &optional offset)
+  "Sets the state of mouse cursor. When IMAGE is NIL hide the cursor, when T show it. If IMAGE is an image resource use that as mouse cursor. OFFSET is a vector that sets the offset of custom cursor image."
   (assert (and (or (null offset) (vec-p offset))
                (or (image-p image) (typep image 'boolean))))
   (when offset
