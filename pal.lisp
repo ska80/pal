@@ -728,7 +728,8 @@
   (pal-ffi:gl-pop-attrib))
 
 (defunct draw-circle (pos radius r g b a &key (fill t) absolutep (size 1f0) smoothp (segments 30))
-    (vec pos single-float radius u8 r u8 g u8 b u8 a (or image symbol) fill boolean absolutep single-float size boolean smoothp fixnum segments)
+    (vec pos single-float radius u8 r u8 g u8 b u8 a
+         (or image symbol) fill boolean absolutep single-float size boolean smoothp fixnum segments)
   (declare (type vec pos) (type fixnum segments))
   (draw-polygon (loop for a from 0 to (* 2 pi) by (/ (* 2 pi) segments) collecting
                      (v+ pos
