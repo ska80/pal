@@ -297,9 +297,10 @@
 (defunct push-clip (x y width height)
     (u16 x u16 y u16 width u16 height)
   (close-quads)
-  (pal-ffi:gl-scissor x y width height)
-  (pal-ffi:gl-enable pal-ffi:+gl-scissor-test+)
-  (push (vector x y width height) *clip-stack*))
+  (let ((y (- (get-screen-height) y height)))
+    (pal-ffi:gl-scissor x y width height)
+    (pal-ffi:gl-enable pal-ffi:+gl-scissor-test+)
+    (push (vector x y width height) *clip-stack*)))
 
 (defun pop-clip ()
   (close-quads)
