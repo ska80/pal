@@ -1,0 +1,688 @@
+#LyX 1.4.4 created this file. For more info see http://www.lyx.org/
+\lyxformat 245
+\begin_document
+\begin_header
+\textclass article
+\language english
+\inputencoding auto
+\fontscheme default
+\graphics default
+\paperfontsize default
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Pixel Art Library
+\end_layout
+
+\begin_layout Author
+Tomi Neste tneste@common-lisp.net
+\end_layout
+
+\begin_layout Standard
+
+\newpage
+
+\end_layout
+
+\begin_layout Quote
+Pixel Art Library is published under the MIT license
+\end_layout
+
+\begin_layout Quote
+Copyright (c) 2006 Tomi Neste
+\end_layout
+
+\begin_layout Quote
+Permission is hereby granted, free of charge, to any person obtaining a
+ copy of this software and associated documentation files (the "Software"),
+ to deal in the Software without restriction, including without limitation
+ the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ and/or sell copies of the Software, and to permit persons to whom the Software
+ is furnished to do so, subject to the following conditions:
+\end_layout
+
+\begin_layout Quote
+The above copyright notice and this permission notice shall be included
+ in all copies or substantial portions of the Software.
+ 
+\end_layout
+
+\begin_layout Quote
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE
+, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ OTHER DEALINGS IN THE SOFTWARE.
+ 
+\end_layout
+
+\begin_layout Standard
+
+\newpage
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand \tableofcontents{}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\newpage
+
+\end_layout
+
+\begin_layout Section
+Introduction and installation
+\end_layout
+
+\begin_layout Subsection
+What is Pixel Art Library
+\end_layout
+
+\begin_layout Standard
+PAL is a Common Lisp library for developing applications with fast 2d graphics
+ and sound.
+ Internally it uses SDL for sound, event handling and window initialisation
+ and OpenGL for fast hardware accelerated graphics but its API has little
+ to do with the aforementioned libraries.
+\end_layout
+
+\begin_layout Standard
+PAL's design goals are ease of use, portability and reliability.
+ It tries to provide all the 
+\emph on
+common
+\emph default
+ functionality that is needed when creating 2d games and similar applications.
+ As such it neither provides higher level specialised facilities like sprites
+ or collision detection, or lower level OpenGL specific functionality.
+ If the user is familiar with Common Lisp and OpenGL this kind of functionality
+ should be easy to implement on top of PAL.
+\end_layout
+
+\begin_layout Subsection
+Requirements
+\end_layout
+
+\begin_layout Itemize
+Pixel Art Library requires the SDL, SDL_image and SDL_mixer libraries.
+ For Windows users it's easiest to use the ones included in the PAL releases,
+ Linux users should be able to easily install these through their distros
+ package management.
+ 
+\emph on
+Note: These come with their own license.
+\end_layout
+
+\begin_layout Itemize
+Like most modern CL libraries PAL uses ASDF to handle compilation and loading.
+ If you are using SBCL this is included with the default installation and
+ can be loaded with (REQUIRE :ASDF), with other systems you may need to
+ download it separately.
+\end_layout
+
+\begin_layout Itemize
+For interfacing with the foreign libraries PAL uses the excellent CFFI library.
+ It's available from http://common-lisp.net/project/cffi
+\end_layout
+
+\begin_layout Itemize
+For creating the bitmap fonts that PAL uses you need the font creator that
+ is included in Haaf's Game Engine.
+ This will be fixed in the future releases.
+\end_layout
+
+\begin_layout Itemize
+To get anywhere near reasonable performance you need a graphics card and
+ driver that is capable of hardware accelerated OpenGL graphics.
+\end_layout
+
+\begin_layout Subsection
+Installation
+\end_layout
+
+\begin_layout Standard
+After installing CFFI (and possibly ASDF) and downloading and unpacking
+ PAL you should
+\end_layout
+
+\begin_layout Itemize
+Under Windows copy the .dlls to somewhere where they can be found, for example
+ in your Lisp implementations home folder.
+\end_layout
+
+\begin_layout Itemize
+Under Linux, check that the SDL, SDL_mixer and SDL_image packages are installed.
+\end_layout
+
+\begin_layout Itemize
+Copy the PAL folder to where you usually keep your ASDF systems.
+ If you are unsure you can check and modify this through ASDF:*CENTRAL-REGISTRY*
+ variable
+\end_layout
+
+\begin_layout Itemize
+In your Lisp prompt do (ASDF:OOS 'ASDF:LOAD-OP :PAL) and after awhile everything
+ should be compiled and loaded in your Lisp session.
+ In case of errors first check that everything, including the foreign libraries
+ can be found by the system.
+ If nothing works feel free to bug the Pal-dev mailing list.
+ 
+\end_layout
+
+\begin_layout Itemize
+If everything went fine you can now try your first PAL program, enter in
+ the following:
+\end_layout
+
+\begin_layout Quotation
+
+\family typewriter
+(with-pal (:title 
+\begin_inset Quotes eld
+\end_inset
+
+PAL test
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Quotation
+
+\family typewriter
+\InsetSpace ~
+\InsetSpace ~
+(clear-screen 255 255 0)
+\end_layout
+
+\begin_layout Quotation
+
+\family typewriter
+\InsetSpace ~
+\InsetSpace ~
+(with-transformation (:pos (v 400 300) :angle 45f0 :scale 4f0)
+\end_layout
+
+\begin_layout Quotation
+
+\family typewriter
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+(draw-text 
+\begin_inset Quotes eld
+\end_inset
+
+Hello World!
+\begin_inset Quotes erd
+\end_inset
+
+ (v 0 0))
+\end_layout
+
+\begin_layout Quotation
+
+\family typewriter
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+(wait-keypress)))
+\end_layout
+
+\begin_layout Standard
+
+\newpage
+
+\end_layout
+
+\begin_layout Section
+Opening and closing PAL and handling resources
+\end_layout
+
+\begin_layout Subsection
+OPEN-PAL
+\end_layout
+
+\begin_layout Subsection
+CLOSE-PAL
+\end_layout
+
+\begin_layout Subsection
+WITH-PAL
+\end_layout
+
+\begin_layout Subsection
+LOAD-FOREIGN-LIBRARIES
+\end_layout
+
+\begin_layout Subsection
+FREE-RESOURCE
+\end_layout
+
+\begin_layout Subsection
+FREE-ALL-RESOURCES
+\end_layout
+
+\begin_layout Subsection
+WITH-RESOURCE
+\end_layout
+
+\begin_layout Subsection
+GET-SCREEN-WIDTH, GET-SCREEN-HEIGHT
+\end_layout
+
+\begin_layout Standard
+
+\newpage
+
+\end_layout
+
+\begin_layout Section
+Event handling
+\end_layout
+
+\begin_layout Subsection
+HANDLE-EVENTS
+\end_layout
+
+\begin_layout Subsection
+EVENT-LOOP
+\end_layout
+
+\begin_layout Subsection
+GET-MOUSE-POS, GET-MOUSE-X, GET-MOUSE-Y
+\end_layout
+
+\begin_layout Subsection
+KEY-PRESSED-P
+\end_layout
+
+\begin_layout Subsection
+TEST-KEYS
+\end_layout
+
+\begin_layout Subsection
+KEYSYM-CHAR
+\end_layout
+
+\begin_layout Subsection
+WAIT-KEYPRESS
+\end_layout
+
+\begin_layout Subsection
+UPDATE-SCREEN
+\end_layout
+
+\begin_layout Standard
+
+\newpage
+
+\end_layout
+
+\begin_layout Section
+Images and drawing
+\end_layout
+
+\begin_layout Subsection
+CLEAR-SCREEN
+\end_layout
+
+\begin_layout Subsection
+DRAW-POINT
+\end_layout
+
+\begin_layout Subsection
+DRAW-LINE
+\end_layout
+
+\begin_layout Subsection
+DRAW-ARROW
+\end_layout
+
+\begin_layout Subsection
+LOAD-IMAGE
+\end_layout
+
+\begin_layout Subsection
+IMAGE-WIDTH, IMAGE-HEIGHT
+\end_layout
+
+\begin_layout Subsection
+DRAW-IMAGE
+\end_layout
+
+\begin_layout Subsection
+DRAW-IMAGE*
+\end_layout
+
+\begin_layout Subsection
+DRAW-RECTANGLE
+\end_layout
+
+\begin_layout Subsection
+DRAW-CIRCLE
+\end_layout
+
+\begin_layout Subsection
+DRAW-POLYGON
+\end_layout
+
+\begin_layout Subsection
+DRAW-POLYGON*
+\end_layout
+
+\begin_layout Subsection
+SET-CURSOR
+\end_layout
+
+\begin_layout Subsection
+SET-MOUSE-POS
+\end_layout
+
+\begin_layout Subsection
+IMAGE-FROM-ARRAY
+\end_layout
+
+\begin_layout Subsection
+IMAGE-FROM-FN
+\end_layout
+
+\begin_layout Subsection
+LOAD-IMAGE-TO-ARRAY
+\end_layout
+
+\begin_layout Subsection
+SCREEN-TO-ARRAY
+\end_layout
+
+\begin_layout Standard
+
+\newpage
+
+\end_layout
+
+\begin_layout Section
+Handling graphics state
+\end_layout
+
+\begin_layout Subsection
+ROTATE
+\end_layout
+
+\begin_layout Subsection
+TRANSLATE
+\end_layout
+
+\begin_layout Subsection
+SCALE
+\end_layout
+
+\begin_layout Subsection
+WITH-TRANSFORMATION
+\end_layout
+
+\begin_layout Subsection
+SET-BLEND-MODE
+\end_layout
+
+\begin_layout Subsection
+RESET-BLEND-MODE
+\end_layout
+
+\begin_layout Subsection
+SET-BLEND-COLOR
+\end_layout
+
+\begin_layout Subsection
+WITH-BLEND
+\end_layout
+
+\begin_layout Subsection
+WITH-CLIPPING
+\end_layout
+
+\begin_layout Standard
+
+\newpage
+
+\end_layout
+
+\begin_layout Section
+Music and samples
+\end_layout
+
+\begin_layout Subsection
+LOAD-SAMPLE, SAMPLE-P
+\end_layout
+
+\begin_layout Subsection
+PLAY-SAMPLE
+\end_layout
+
+\begin_layout Subsection
+SET-SAMPLE-VOLUME
+\end_layout
+
+\begin_layout Subsection
+LOAD-MUSIC
+\end_layout
+
+\begin_layout Subsection
+SET-MUSIC-VOLUME
+\end_layout
+
+\begin_layout Subsection
+PLAY-MUSIC
+\end_layout
+
+\begin_layout Subsection
+HALT-MUSIC
+\end_layout
+
+\begin_layout Standard
+
+\newpage
+
+\end_layout
+
+\begin_layout Section
+Fonts
+\end_layout
+
+\begin_layout Subsection
+LOAD-FONT
+\end_layout
+
+\begin_layout Subsection
+GET-TEXT-SIZE
+\end_layout
+
+\begin_layout Subsection
+GET-FONT-HEIGHT
+\end_layout
+
+\begin_layout Subsection
+DRAW-TEXT
+\end_layout
+
+\begin_layout Subsection
+DRAW-FPS
+\end_layout
+
+\begin_layout Subsection
+MESSAGE
+\end_layout
+
+\begin_layout Standard
+
+\newpage
+
+\end_layout
+
+\begin_layout Section
+Tags
+\end_layout
+
+\begin_layout Subsection
+DEFINE-TAGS
+\end_layout
+
+\begin_layout Subsection
+ADD-TAG
+\end_layout
+
+\begin_layout Subsection
+TAG
+\end_layout
+
+\begin_layout Standard
+
+\newpage
+
+\end_layout
+
+\begin_layout Section
+Vector and math operations
+\end_layout
+
+\begin_layout Subsection
+V, COPY-VEC, V=
+\end_layout
+
+\begin_layout Subsection
+ANGLE-V, V-ANGLE, V-ROTATE
+\end_layout
+
+\begin_layout Subsection
+VX, VY
+\end_layout
+
+\begin_layout Subsection
+V+, V-, V*, V/, V+!, V-!, V*!, V/!
+\end_layout
+
+\begin_layout Subsection
+V-MAX, V-MIN
+\end_layout
+
+\begin_layout Subsection
+V-TRUNCATE
+\end_layout
+
+\begin_layout Subsection
+V-DIRECTION
+\end_layout
+
+\begin_layout Subsection
+CLOSEST-POINT-TO-LINE
+\end_layout
+
+\begin_layout Subsection
+DISTANCE-FROM-LINE
+\end_layout
+
+\begin_layout Subsection
+POINT-IN-LINE-P
+\end_layout
+
+\begin_layout Subsection
+LINES-INTERSECTION
+\end_layout
+
+\begin_layout Subsection
+CIRCLE-LINE-INTERSECTION
+\end_layout
+
+\begin_layout Subsection
+POINT-INSIDE-RECTANGLE-P, POINT-INSIDE-CIRCLE-P
+\end_layout
+
+\begin_layout Subsection
+CIRCLES-OVERLAP-P
+\end_layout
+
+\begin_layout Standard
+
+\newpage
+
+\end_layout
+
+\begin_layout Section
+Miscellaneous functions and macros
+\end_layout
+
+\begin_layout Subsection
+GET-GL-INFO
+\end_layout
+
+\begin_layout Subsection
+DATA-PATH
+\end_layout
+
+\begin_layout Subsection
+GET-FPS
+\end_layout
+
+\begin_layout Subsection
+LOAD-FOREIGN-LIBRARIES
+\end_layout
+
+\begin_layout Subsection
+GET-APPLICATION-FOLDER, GET-APPLICATION-FILE
+\end_layout
+
+\begin_layout Subsection
+DATA-PATH
+\end_layout
+
+\begin_layout Subsection
+RANDOMLY
+\end_layout
+
+\begin_layout Subsection
+RANDOM-ELEMENT
+\end_layout
+
+\begin_layout Subsection
+CLAMP
+\end_layout
+
+\begin_layout Subsection
+DO-N
+\end_layout
+
+\begin_layout Subsection
+CURRY
+\end_layout
+
+\end_body
+\end_document

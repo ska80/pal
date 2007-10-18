@@ -366,7 +366,6 @@
            #:close-pal
            #:get-gl-info
            #:load-foreign-libraries
-           #:register-resource
            #:free-resource
            #:free-all-resources
            #:define-tags
@@ -416,8 +415,6 @@
            #:set-blend-color
            #:with-blend
            #:with-clipping
-           #:push-clip
-           #:pop-clip
            #:update-screen
 
            #:image-from-array
