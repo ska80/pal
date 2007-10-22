@@ -889,7 +889,8 @@
 (defun draw-fps ()
   (draw-text (prin1-to-string (get-fps)) (v 0 0)))
 
-(defun message (object)
-  (setf *messages* (append *messages* (list (prin1-to-string object))))
+(defun message (&rest messages)
+  (setf *messages* (append *messages* (list (format nil "~{~S ~}" messages))))
   (when (> (length *messages*) (- (truncate (get-screen-height) (get-font-height)) 1))
     (pop *messages*)))
+
