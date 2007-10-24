@@ -357,8 +357,8 @@
   (close-quads)
   (pal-ffi:gl-translatef (vx vec) (vy vec) 0f0))
 
-(declaim (inline reset-blend-mode))
-(defun reset-blend-mode ()
+(declaim (inline reset-blend))
+(defun reset-blend ()
   (close-quads)
   (set-blend-mode :blend)
   (set-blend-color 255 255 255 255))

@@ -174,11 +174,6 @@
                      ,(expand (cddr args)))))))
     (expand args)))
 
-(defmacro curry (fn &rest args)
-  (let ((rest (gensym)))
-    `(lambda (&rest ,rest)
-       (declare (dynamic-extent ,rest))
-       (apply ,fn ,@args ,rest))))
 
 (defmacro test-keys (&body args)
   `(progn

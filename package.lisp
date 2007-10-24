@@ -387,8 +387,7 @@
            #:random-elt
            #:clamp
            #:do-n
-           #:curry
-
+           
            #:handle-events           
            #:key-pressed-p
            #:keysym-char
@@ -411,7 +410,7 @@
            #:translate
            #:scale
            #:set-blend-mode
-           #:reset-blend-mode
+           #:reset-blend
            #:set-blend-color
            #:with-blend
            #:with-clipping
