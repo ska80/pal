@@ -706,6 +706,7 @@
 (defconstant +gl-dst-alpha+ #x304)
 (defconstant +gl-one+ 1)
 (defconstant +gl-flat+ #x1d00)
+(defconstant +gl-polygon-smooth+ #xb41)
 (defconstant +gl-zero+ 0)
 (defconstant +gl-points+ 0)
 (defconstant +gl-ONE-MINUS-DST-ALPHA+ #x305)

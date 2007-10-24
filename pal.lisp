@@ -633,6 +633,7 @@
                          (v+ pos (v 0 height)))
                    r g b a
                    :fill fill
+                   :smoothp smoothp
                    :absolutep absolutep))
     ((eq nil fill)
      (with-line-settings smoothp size r g b a
@@ -655,6 +656,8 @@
     ((image-p fill)
      (close-quads)
      (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-current-bit+))
+     (when smoothp
+       (pal-ffi:gl-enable pal-ffi:+gl-polygon-smooth+))
      (set-image fill)
      (pal-ffi:gl-color4ub r g b a)
      (with-gl pal-ffi:+gl-polygon+
@@ -684,18 +687,22 @@
      (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-current-bit+ pal-ffi:+gl-enable-bit+))
      (pal-ffi:gl-color4ub r g b a)
      (pal-ffi:gl-disable pal-ffi:+gl-texture-2d+)
+     (when smoothp
+       (pal-ffi:gl-enable pal-ffi:+gl-polygon-smooth+))
      (with-gl pal-ffi:+gl-polygon+
        (dolist (p points)
          (pal-ffi:gl-vertex2f (vx p) (vy p))))
      (pal-ffi:gl-pop-attrib))))
 
-(defunct draw-polygon* (points &key image tex-coords colors)
-    (list points list tex-coords list colors (or boolean image) image)
+(defunct draw-polygon* (points &key image tex-coords colors smoothp)
+    (list points list tex-coords list colors (or boolean image) image boolean smoothp)
   (close-quads)
   (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-current-bit+ pal-ffi:+gl-enable-bit+))
   (cond
     ((and image tex-coords)
      (set-image image)
+     (when smoothp
+       (pal-ffi:gl-enable pal-ffi:+gl-polygon-smooth+))
      (cond
        (colors
         (pal-ffi:gl-shade-model pal-ffi:+gl-smooth+)
@@ -719,6 +726,8 @@
     (t
      (pal-ffi:gl-shade-model pal-ffi:+gl-smooth+)
      (pal-ffi:gl-disable pal-ffi:+gl-texture-2d+)
+     (when smoothp
+       (pal-ffi:gl-enable pal-ffi:+gl-polygon-smooth+))
      (with-gl pal-ffi:+gl-polygon+
        (loop
           for p in points
