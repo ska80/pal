@@ -10,8 +10,6 @@ TODO:
 
 - I would really like to see it run on OS X.
 
-- The problems with Linux and some gfx drivers should be somehow fixed.
-
 - Documentation and tutorials.
 
 
@@ -21,8 +19,6 @@ As separate projects on top of PAL:
 - Native CL font resource builder
 
 - TTF support
-
-- GUI
 
 - Some sort of sprite library?
 

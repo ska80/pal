@@ -1,7 +1,7 @@
 ;; Notes:
-;; add start/end args to draw-circle, use triangle-fan for circles
+;; add start/end args to draw-circle
 ;; check for redundant close-quads, optimise rotations/offsets etc. in draw-image
-;; newline support for draw-text, optimise gl state handling
+;; optimise gl state handling, fix clipping, structured color values
 
 
 (declaim (optimize (speed 3)
@@ -185,7 +185,10 @@
 
 (defunct keysym-char (keysym)
     (symbol keysym)
-  (code-char (cffi:foreign-enum-value 'pal-ffi:sdl-key keysym)))
+  (let ((kv (cffi:foreign-enum-value 'pal-ffi:sdl-key keysym)))
+    (if (and (> kv 0) (< kv 256))
+        (code-char kv)
+        nil)))
 
 (declaim (inline get-mouse-pos))
 (defun get-mouse-pos ()
@@ -818,7 +821,7 @@
 
 
 (defun load-font (font)
-  (let ((glyphs (make-array 255 :initial-element (make-glyph :width 1 :height 1 :xoff 0) :element-type 'glyph))
+  (let ((glyphs (make-array 256 :initial-element (make-glyph :width 1 :height 1 :xoff 0) :element-type 'glyph))
         (lines (with-open-file (file (data-path (concatenate 'string font ".fnt")))
                  (loop repeat 4 do (read-line file))
                  (loop for i from 0 to 94 collecting
