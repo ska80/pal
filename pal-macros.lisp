@@ -90,20 +90,20 @@
 (defmacro with-default-settings (&body body)
   "Evaluate BODY with default transformations and blend settings."
   `(with-transformation ()
-     (with-blend (:mode :blend :color '(255 255 255 255))
+     (with-blend (:mode :blend :color (color 255 255 255 255))
        (pal-ffi:gl-load-identity)
        ,@body)))
 
 
 (defmacro with-blend ((&key (mode t) color) &body body)
-  "Evaluate BODY with blend options set to MODE and COLOR. Color is a list of (r g b a) values."
+  "Evaluate BODY with blend options set to MODE and COLOR."
   `(progn
      (close-quads)
      (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-color-buffer-bit+ pal-ffi:+gl-current-bit+ pal-ffi:+gl-enable-bit+))
      ,(unless (eq mode t)
               `(set-blend-mode ,mode))
      ,(when color
-            `(set-blend-color (first ,color) (second ,color) (third ,color) (fourth ,color)))
+            `(set-blend-color (color-r ,color) (color-g ,color) (color-b ,color) (color-a ,color)))
      (prog1 (progn
               ,@body)
        (close-quads)

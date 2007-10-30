@@ -8,12 +8,14 @@
   :components
   ((:file "ffi"
           :depends-on ("package"))
+   (:file "color"
+          :depends-on ("package"))
    (:file "vector"
           :depends-on ("pal-macros"))
    (:file "pal-macros"
-          :depends-on ("ffi"))
+          :depends-on ("ffi" "color"))
    (:file "pal"
-          :depends-on ("pal-macros" "vector"))
+          :depends-on ("pal-macros" "color" "vector"))
    (:file "package"))
   :depends-on ("cffi"))
 

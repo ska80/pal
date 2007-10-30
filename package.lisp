@@ -370,7 +370,7 @@
            #:free-resource
            #:free-all-resources
            #:define-tags
-           #:add-tag           
+           #:add-tag
            #:tag
            #:sample
            #:music
@@ -388,8 +388,8 @@
            #:random-elt
            #:clamp
            #:do-n
-           
-           #:handle-events           
+
+           #:handle-events
            #:key-pressed-p
            #:keysym-char
            #:test-keys
@@ -451,6 +451,8 @@
            #:play-music
            #:halt-music
 
+           #:color #:color-r #:color-g #:color-b #:color-a #:random-color
+           
            #:v #:vec #:copy-vec #:angle-v #:v-angle #:vx #:vy
            #:v= #:v-round #:v-floor #:v-random
            #:v+ #:v+!  #:v- #:v-! #:v* #:v*! #:v/ #:v/! #:v-max #:v-min #:v-rotate

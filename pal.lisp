@@ -1,8 +1,3 @@
-;; Notes:
-;; add start/end args to draw-circle
-;; check for redundant close-quads, optimise rotations/offsets etc. in draw-image
-;; optimise gl state handling, fix clipping, structured color values
-
 
 (declaim (optimize (speed 3)
                    (safety 1)))
@@ -185,10 +180,12 @@
 
 (defunct keysym-char (keysym)
     (symbol keysym)
-  (let ((kv (cffi:foreign-enum-value 'pal-ffi:sdl-key keysym)))
-    (if (and (> kv 0) (< kv 256))
-        (code-char kv)
-        nil)))
+  (if (or (eq keysym :key-mouse-1) (eq keysym :key-mouse-2) (eq keysym :key-mouse-3))
+      nil
+      (let ((kv (cffi:foreign-enum-value 'pal-ffi:sdl-key keysym)))
+        (if (and (> kv 0) (< kv 256))
+            (code-char kv)
+            nil))))
 
 (declaim (inline get-mouse-pos))
 (defun get-mouse-pos ()
@@ -882,9 +879,7 @@
 (declaim (inline get-font-height))
 (defunct get-font-height (&optional font)
     ((or font boolean) font)
-  (pal-ffi:font-height (if font
-                           font
-                           (tag 'default-font))))
+  (pal-ffi:font-height (or font (tag 'default-font))))
 
 (defunct get-text-size (text &optional font)
     ((or font boolean) font simple-string text)
@@ -905,4 +900,3 @@
   (setf *messages* (append *messages* (list (format nil "~{~S ~}" messages))))
   (when (> (length *messages*) (- (truncate (get-screen-height) (get-font-height)) 1))
     (pop *messages*)))
-

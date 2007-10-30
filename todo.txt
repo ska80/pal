@@ -1,6 +1,25 @@
 TODO:
 
+
+For v1.1
+
+- Fix offsets in draw-image.
+
+- Polygon smooth hint?
+
 - Add align, scale and angle options to DRAW-IMAGE*.
+
+- Better clipping.
+
+- Structured color values.
+
+
+
+After v1.1
+
+- Better drawing primitives, real lines, start/end args to draw-circle etc.
+
+- As always, optimise GL state handling.
 
 - Implement image mirroring, tiles and animation.
 
@@ -16,9 +35,11 @@ TODO:
 
 As separate projects on top of PAL:
 
-- Native CL font resource builder
+- GUI, work in progress.
 
-- TTF support
+- Native CL font resource builder.
+
+- TTF support.
 
 - Some sort of sprite library?
 
