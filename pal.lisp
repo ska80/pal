@@ -115,6 +115,10 @@
 (defun random-elt (sequence)
   (elt sequence (random (length sequence))))
 
+(defun free-resource (resource)
+  (close-quads)
+  (pal-ffi:free-resource resource))
+
 (defun free-all-resources ()
   (reset-tags)
   (pal-ffi:halt-music)
@@ -404,7 +408,7 @@
               (cffi:mem-ref b :uint8)
               (cffi:mem-ref a :uint8)))))
 
-(defun image-from-array (smoothp array)
+(defun image-from-array (array smoothp)
   (image-from-fn (array-dimension array 0)
                  (array-dimension array 1)
                  smoothp

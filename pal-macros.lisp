@@ -84,7 +84,7 @@
   `(let ((,resource ,init-form))
      (prog1 (progn
               ,@body)
-       (free-resource ,resource))))
+       (pal:free-resource ,resource))))
 
 
 (defmacro with-default-settings (&body body)
