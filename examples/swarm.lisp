@@ -1,5 +1,6 @@
 ;; NOTE: the following example is intentionally slow and somewhat obfuscated
 
+
 (defun swarm ()
   (let ((vectors nil))
     (pal:with-pal (:width 1024 :height 768)
@@ -9,7 +10,7 @@
                                         (setf vectors (append vectors (loop repeat 50 collecting (cons (pal:get-mouse-pos)
                                                                                                        (pal:v-random 5.0))))))))
         (pal:draw-rectangle (pal:v 0 0) 1024 768 0 0 0 128)
-        (pal:with-blend (:color '(255 128 128 255))
+        (pal:with-blend (:color (pal:color 255 128 128))
           (pal:draw-text "Use left mousekey to add particles." (pal:v 0 0)))
 
         (let ((midpoint (pal:v/ (reduce 'pal:v+ vectors :initial-value (pal:v 0 0) :key 'car)

@@ -1,0 +1,993 @@
+%% LyX 1.4.4 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+
+\makeatletter
+\usepackage{babel}
+\makeatother
+\begin{document}
+
+\title{Pixel Art Library}
+
+
+\author{Tomi Neste tneste@common-lisp.net}
+
+\maketitle
+\newpage{}
+
+\begin{quote}
+Pixel Art Library is published under the MIT license
+
+Copyright (c) 2006 Tomi Neste
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the \char`\"{}Software\char`\"{}),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom
+the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software. 
+
+THE SOFTWARE IS PROVIDED \char`\"{}AS IS\char`\"{}, WITHOUT WARRANTY
+OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+\end{quote}
+\newpage{}
+
+\tableofcontents{}
+
+\newpage{}
+
+
+\section{Introduction and installation}
+
+
+\subsection{What is Pixel Art Library}
+
+PAL is a Common Lisp library for developing applications with fast
+2d graphics and sound. Internally it uses SDL for sound, event handling
+and window initialisation and OpenGL for fast hardware accelerated
+graphics but its API has little to do with the aforementioned libraries.
+
+PAL's design goals are ease of use, portability and reliability. It
+tries to provide all the \emph{common} functionality that is needed
+when creating 2d games and similar applications. As such it neither
+provides higher level specialised facilities like sprites or collision
+detection, or lower level OpenGL specific functionality. If the user
+is familiar with Common Lisp and OpenGL this kind of functionality
+should be easy to implement on top of PAL.
+
+
+\subsection{Requirements}
+
+\begin{itemize}
+\item Pixel Art Library requires the SDL, SDL\_image and SDL\_mixer libraries.
+For Windows users it's easiest to use the ones included in the PAL
+releases, Linux users should be able to easily install these through
+their distros package management. \emph{Note: These come with their
+own license.}
+\item Like most modern CL libraries PAL uses ASDF to handle compilation
+and loading. If you are using SBCL this is included with the default
+installation and can be loaded with (REQUIRE :ASDF), with other systems
+you may need to download it separately.
+\item For interfacing with the foreign libraries PAL uses the excellent
+CFFI library. It's available from http://common-lisp.net/project/cffi
+\item For creating the bitmap fonts that PAL uses you need the font creator
+that is included in Haaf's Game Engine. This will be fixed in the
+future releases.
+\item To get anywhere near reasonable performance you need a graphics card
+and driver that is capable of hardware accelerated OpenGL graphics.
+\end{itemize}
+
+\subsection{Installation}
+
+After installing CFFI (and possibly ASDF) and downloading and unpacking
+PAL you should
+
+\begin{itemize}
+\item Under Windows copy the .dlls to somewhere where they can be found,
+for example in your Lisp implementations home folder.
+\item Under Linux, check that the SDL, SDL\_mixer and SDL\_image packages
+are installed.
+\item Copy the PAL folder to where you usually keep your ASDF systems. If
+you are unsure you can check and modify this through ASDF:{*}CENTRAL-REGISTRY{*}
+variable
+\item In your Lisp prompt do (ASDF:OOS 'ASDF:LOAD-OP :PAL) and after awhile
+everything should be compiled and loaded in your Lisp session. In
+case of errors first check that everything, including the foreign
+libraries can be found by the system. If nothing works feel free to
+bug the Pal-dev mailing list. 
+\item If everything went fine you can now try your first PAL program, enter
+in the following:
+\end{itemize}
+\begin{quotation}
+\texttt{(with-pal (:title {}``PAL test'')}
+
+\texttt{~~(clear-screen 255 255 0)}
+
+\texttt{~~(with-transformation (:pos (v 400 300) :angle 45f0 :scale
+4f0)}
+
+\texttt{~~~~(draw-text {}``Hello World!'' (v 0 0))}
+
+\texttt{~~~~(wait-keypress)))}
+\end{quotation}
+\newpage{}
+
+
+\section{Opening and closing PAL and handling resources}
+
+
+\subsection{Resources}
+
+
+\subsection{Functions and macros}
+
+\begin{description}
+\item [{OPEN-PAL}] (\&key \textit{width height fps title fullscreenp paths})
+\end{description}
+Opens and initialises PAL window.
+
+\begin{description}
+\item [{\textit{width},}] width of the screen.
+\item [{\textit{height},}] height of the screen. If width and height are
+0 then the default desktop dimensions are used.
+\item [{\textit{fps},}] maximum number of times per second that the screen
+is updated.
+\item [{\textit{title},}] title of the screen.
+\item [{\textit{fullscreenp},}] open in windowed or fullscreen mode.
+\item [{\textit{paths},}] pathname or list of pathnames that the load-{*}
+functions use to find resources. Initially holds {*}default-pathname-defauls{*}
+and PAL installation directory.
+\item [{CLOSE-PAL}] ()
+\end{description}
+Closes PAL screen and frees all loaded resources.
+
+\begin{description}
+\item [{WITH-PAL}] (\&key \textit{width height fps title fullscreenp paths}
+\&body \textit{body})
+\end{description}
+Opens PAL, executes \textit{body} and finally closes PAL. Arguments
+are same as with OPEN-PAL.
+
+\begin{description}
+\item [{FREE-RESOURCE}] (\textit{resource})
+\end{description}
+Frees the \textit{resource} (image, font, sample or music).
+
+\begin{description}
+\item [{FREE-ALL-RESOURCES}] ()
+\end{description}
+Frees all allocated resources.
+
+\begin{description}
+\item [{WITH-RESOURCE}] (\textit{var init-form}) \&body \textit{body}
+\end{description}
+Binds \textit{var} to the result of \textit{init-form} and executes
+\textit{body}. Finally calls FREE-RESOURCE on \textit{var.}
+
+\begin{description}
+\item [{GET-SCREEN-WIDTH}] () => \textit{number}
+\item [{GET-SCREEN-HEIGHT}] () => \textit{number}
+\end{description}
+Returns the dimensions of PAL screen.
+
+\newpage{}
+
+
+\section{Event handling}
+
+
+\subsection{Basics}
+
+There are two ways to handle events in PAL; the callback based HANDLE-EVENTS
+or EVENT-LOOP that call given functions when an event happens, or
+directly polling for key and mouse state with TEST-KEYS, KEY-PRESSED-P
+and GET-MOUSE-POS.
+
+NOTE: Even if you don't need to use the callback approach it is still
+necessary to call HANDLE-EVENTS on regular intervals, especially on
+Windows. Running an EVENT-LOOP does this automatically for you and
+is the preferred way to handle events.
+
+
+\subsection{Functions and macros}
+
+\begin{description}
+\item [{HANDLE-EVENTS}] (\&key \textit{key-up-fn key-down-fn mouse-motion-fn
+quit-fn})
+\end{description}
+Get next event, if any, and call appropriate handler function.
+
+\begin{description}
+\item [{\textit{key-up-fn},}] called with the released key-sym. For key-syms
+see chapter 3.3
+\item [{\textit{key-down-fn},}] called with the pressed key-sym. When \textit{key-down-fn}
+is not defined pressing Esc-key causes a quit event.
+\item [{\textit{mouse-motion-fn},}] called with x and y mouse coordinates.
+\item [{\textit{quit-fn},}] called without any arguments when user presses
+the windows close button. Also called when Esc key is pressed, unless
+\textit{key-down-fn} is defined.
+\item [{UPDATE-SCREEN}] ()
+\end{description}
+Updates the PAL screen. No output is visible until UPDATE-SCREEN is
+called. 
+
+\begin{description}
+\item [{EVENT-LOOP}] ((\&key \textit{key-up-fn key-down-fn mouse-motion-fn
+quit-fn}) \&body \textit{body})
+\end{description}
+Repeatedly calls \textit{body} between HANDLE-EVENT and UPDATE-SCREEN.
+Arguments are the same as with HANDLE-EVENTS. Returns when (return-from
+event-loop) is called, or, if quit-fn is not given when quit event
+is generated.
+
+\begin{description}
+\item [{GET-MOUSE-POS}] () => \textit{vector} 
+\item [{GET-MOUSE-X}] () => \textit{number}
+\item [{GET-MOUSE-Y}] () => \textit{number}
+\end{description}
+Returns the current position of mouse pointer.
+
+\begin{description}
+\item [{SET-MOUSE-POS}] (\textit{vector})
+\end{description}
+Sets the position of mouse pointer.
+
+\begin{description}
+\item [{KEY-PRESSED-P}] (\textit{keysym}) => \textit{bool}
+\end{description}
+Test if the key \textit{keysym} is currently pressed down. For keysyms
+see chapter 3.3
+
+\begin{description}
+\item [{TEST-KEYS}] ((\textit{key} | (\textit{keys}) \textit{form}))
+\end{description}
+Tests if any of the given keys are currently pressed. Evaluates \textit{all}
+matching forms.
+
+Example:
+
+\begin{quotation}
+(test-keys
+
+~~(:key-left (move-left sprite))
+
+~~(:key-right (move-right sprite))
+
+~~((:key-ctrl :key-mouse-1) (shoot sprite)) 
+\end{quotation}
+\begin{description}
+\item [{KEYSYM-CHAR}] (\textit{keysym}) => \textit{char}
+\end{description}
+Returns the corresponding Common Lisp character for \textit{keysym},
+or NIL if the character is out the ASCII range 1-255. 
+
+\begin{description}
+\item [{WAIT-KEYPRESS}] () => \textit{key}
+\end{description}
+Waits until a key is pressed and released
+
+
+\subsection{Keysyms}
+
+These are the symbols used to identify keyboard events. Note that
+mouse button and scroll wheel events are also represented as keysyms.
+
+\begin{quotation}
+:key-mouse-1
+
+:key-mouse-2
+
+:key-mouse-3
+
+:key-mouse-4
+
+:key-mouse-5
+
+:key-unknown
+
+:key-first
+
+:key-backspace
+
+:key-tab
+
+:key-clear
+
+:key-return
+
+:key-pause
+
+:key-escape
+
+:key-space
+
+:key-exclaim
+
+:key-quotedbl
+
+:key-hash
+
+:key-dollar
+
+:key-ampersand
+
+:key-quote
+
+:key-leftparen
+
+:key-rightparen
+
+:key-asterisk
+
+:key-plus
+
+:key-comma
+
+:key-minus
+
+:key-period
+
+:key-slash
+
+:key-0
+
+:key-1
+
+:key-2
+
+:key-3
+
+:key-4
+
+:key-5
+
+:key-6
+
+:key-7
+
+:key-8
+
+:key-9
+
+:key-colon
+
+:key-semicolon
+
+:key-less
+
+:key-equals
+
+:key-greater
+
+:key-question
+
+:key-at
+
+:key-leftbracket
+
+:key-backslash
+
+:key-rightbracket
+
+:key-caret
+
+:key-underscore
+
+:key-backquote
+
+:key-a
+
+:key-b
+
+:key-c
+
+:key-d
+
+:key-e
+
+:key-f
+
+:key-g
+
+:key-h
+
+:key-i
+
+:key-j
+
+:key-k
+
+:key-l
+
+:key-m
+
+:key-n
+
+:key-o
+
+:key-p
+
+:key-q
+
+:key-r
+
+:key-s
+
+:key-t
+
+:key-u
+
+:key-v
+
+:key-w
+
+:key-x
+
+:key-y
+
+:key-z
+
+:key-delete
+
+:key-world\_0
+
+:key-world\_1
+
+:key-world\_2
+
+:key-world\_3
+
+:key-world\_4
+
+:key-world\_5
+
+:key-world\_6
+
+:key-world\_7
+
+:key-world\_8
+
+:key-world\_9
+
+:key-world\_10
+
+:key-world\_11
+
+:key-world\_12
+
+:key-world\_13
+
+:key-world\_14
+
+:key-world\_15
+
+:key-world\_16
+
+:key-world\_17
+
+:key-world\_18
+
+:key-world\_19
+
+:key-world\_20
+
+:key-world\_21
+
+:key-world\_22
+
+:key-world\_23
+
+:key-world\_24
+
+:key-world\_25
+
+:key-world\_26
+
+:key-world\_27
+
+:key-world\_28
+
+:key-world\_29
+
+:key-world\_30
+
+:key-world\_31
+
+:key-world\_32
+
+:key-world\_33
+
+:key-world\_34
+
+:key-world\_35
+
+:key-world\_36
+
+:key-world\_37
+
+:key-world\_38
+
+:key-world\_39
+
+:key-world\_40
+
+:key-world\_41
+
+:key-world\_42
+
+:key-world\_43
+
+:key-world\_44
+
+:key-world\_45
+
+:key-world\_46
+
+:key-world\_47
+
+:key-world\_48
+
+:key-world\_49
+
+:key-world\_50
+
+:key-world\_51
+
+:key-world\_52
+
+:key-world\_53
+
+:key-world\_54
+
+:key-world\_55
+
+:key-world\_56
+
+:key-world\_57
+
+:key-world\_58
+
+:key-world\_59
+
+:key-world\_60
+
+:key-world\_61
+
+:key-world\_62
+
+:key-world\_63
+
+:key-world\_64
+
+:key-world\_65
+
+:key-world\_66
+
+:key-world\_67
+
+:key-world\_68
+
+:key-world\_69
+
+:key-world\_70
+
+:key-world\_71
+
+:key-world\_72
+
+:key-world\_73
+
+:key-world\_74
+
+:key-world\_75
+
+:key-world\_76
+
+:key-world\_77
+
+:key-world\_78
+
+:key-world\_79
+
+:key-world\_80
+
+:key-world\_81
+
+:key-world\_82
+
+:key-world\_83
+
+:key-world\_84
+
+:key-world\_85
+
+:key-world\_86
+
+:key-world\_87
+
+:key-world\_88
+
+:key-world\_89
+
+:key-world\_90
+
+:key-world\_91
+
+:key-world\_92
+
+:key-world\_93
+
+:key-world\_94
+
+:key-world\_95
+
+:key-kp0
+
+:key-kp1
+
+:key-kp2
+
+:key-kp3
+
+:key-kp4
+
+:key-kp5
+
+:key-kp6
+
+:key-kp7
+
+:key-kp8
+
+:key-kp9
+
+:key-kp\_period
+
+:key-kp\_divide
+
+:key-kp\_multiply
+
+:key-kp\_minus
+
+:key-kp\_plus
+
+:key-kp\_enter
+
+:key-kp\_equals
+
+:key-up
+
+:key-down
+
+:key-right
+
+:key-left
+
+:key-insert
+
+:key-home
+
+:key-end
+
+:key-pageup
+
+:key-pagedown
+
+:key-f1
+
+:key-f2
+
+:key-f3
+
+:key-f4
+
+:key-f5
+
+:key-f6
+
+:key-f7
+
+:key-f8
+
+:key-f9
+
+:key-f10
+
+:key-f11
+
+:key-f12
+
+:key-f13
+
+:key-f14
+
+:key-f15
+
+:key-numlock
+
+:key-capslock
+
+:key-scrollock
+
+:key-rshift
+
+:key-lshift
+
+:key-rctrl
+
+:key-lctrl
+
+:key-ralt
+
+:key-lalt
+
+:key-rmeta
+
+:key-lmeta
+
+:key-lsuper
+
+:key-rsuper
+
+:key-mode
+
+:key-compose
+
+:key-help
+
+:key-print
+
+:key-sysreq
+
+:key-break
+
+:key-menu
+
+:key-power
+
+:key-euro
+
+:key-undo
+
+:key-last
+\end{quotation}
+\newpage{}
+
+
+\section{Images and drawing}
+
+
+\subsection{CLEAR-SCREEN}
+
+
+\subsection{DRAW-POINT}
+
+
+\subsection{DRAW-LINE}
+
+
+\subsection{DRAW-ARROW}
+
+
+\subsection{LOAD-IMAGE}
+
+
+\subsection{IMAGE-WIDTH, IMAGE-HEIGHT}
+
+
+\subsection{DRAW-IMAGE}
+
+
+\subsection{DRAW-IMAGE{*}}
+
+
+\subsection{DRAW-RECTANGLE}
+
+
+\subsection{DRAW-CIRCLE}
+
+
+\subsection{DRAW-POLYGON}
+
+
+\subsection{DRAW-POLYGON{*}}
+
+
+\subsection{SET-CURSOR}
+
+
+\subsection{IMAGE-FROM-ARRAY}
+
+
+\subsection{IMAGE-FROM-FN}
+
+
+\subsection{LOAD-IMAGE-TO-ARRAY}
+
+
+\subsection{SCREEN-TO-ARRAY}
+
+\newpage{}
+
+
+\section{Handling graphics state}
+
+
+\subsection{ROTATE}
+
+
+\subsection{TRANSLATE}
+
+
+\subsection{SCALE}
+
+
+\subsection{WITH-TRANSFORMATION}
+
+
+\subsection{SET-BLEND}
+
+
+\subsection{RESET-BLEND}
+
+
+\subsection{SET-BLEND-COLOR}
+
+
+\subsection{WITH-BLEND}
+
+
+\subsection{WITH-CLIPPING}
+
+\newpage{}
+
+
+\section{Music and samples}
+
+
+\subsection{LOAD-SAMPLE, SAMPLE-P}
+
+
+\subsection{PLAY-SAMPLE}
+
+
+\subsection{SET-SAMPLE-VOLUME}
+
+
+\subsection{LOAD-MUSIC}
+
+
+\subsection{SET-MUSIC-VOLUME}
+
+
+\subsection{PLAY-MUSIC}
+
+
+\subsection{HALT-MUSIC}
+
+\newpage{}
+
+
+\section{Fonts}
+
+
+\subsection{LOAD-FONT}
+
+
+\subsection{GET-TEXT-SIZE}
+
+
+\subsection{GET-FONT-HEIGHT}
+
+
+\subsection{DRAW-TEXT}
+
+
+\subsection{DRAW-FPS}
+
+
+\subsection{MESSAGE}
+
+\newpage{}
+
+
+\section{Tags}
+
+
+\subsection{DEFINE-TAGS}
+
+
+\subsection{ADD-TAG}
+
+
+\subsection{TAG}
+
+\newpage{}
+
+
+\section{Vector and math operations}
+
+
+\subsection{V, COPY-VEC, V=}
+
+
+\subsection{ANGLE-V, V-ANGLE, V-ROTATE}
+
+
+\subsection{VX, VY}
+
+
+\subsection{V+, V-, V{*}, V/, V+!, V-!, V{*}!, V/!}
+
+
+\subsection{V-MAX, V-MIN}
+
+
+\subsection{V-TRUNCATE}
+
+
+\subsection{V-DIRECTION}
+
+
+\subsection{CLOSEST-POINT-TO-LINE}
+
+
+\subsection{DISTANCE-FROM-LINE}
+
+
+\subsection{POINT-IN-LINE-P}
+
+
+\subsection{LINES-INTERSECTION}
+
+
+\subsection{CIRCLE-LINE-INTERSECTION}
+
+
+\subsection{POINT-INSIDE-RECTANGLE-P, POINT-INSIDE-CIRCLE-P}
+
+
+\subsection{CIRCLES-OVERLAP-P}
+
+\newpage{}
+
+
+\section{Miscellaneous functions and macros}
+
+
+\subsection{GET-GL-INFO}
+
+
+\subsection{DATA-PATH}
+
+
+\subsection{GET-FPS}
+
+
+\subsection{LOAD-FOREIGN-LIBRARIES}
+
+
+\subsection{GET-APPLICATION-FOLDER, GET-APPLICATION-FILE}
+
+
+\subsection{RANDOMLY}
+
+
+\subsection{RANDOM-ELEMENT}
+
+
+\subsection{CLAMP}
+
+
+\subsection{DO-N}
+\end{document}

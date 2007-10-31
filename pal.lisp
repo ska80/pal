@@ -180,7 +180,7 @@
 
 (defunct keysym-char (keysym)
     (symbol keysym)
-  (if (or (eq keysym :key-mouse-1) (eq keysym :key-mouse-2) (eq keysym :key-mouse-3))
+  (if (or (eq keysym :key-mouse-1) (eq keysym :key-mouse-2) (eq keysym :key-mouse-3) (eq keysym :key-mouse-4) (eq keysym :key-mouse-5))
       nil
       (let ((kv (cffi:foreign-enum-value 'pal-ffi:sdl-key keysym)))
         (if (and (> kv 0) (< kv 256))

@@ -1,3 +1,32 @@
+1.1, October 31 2007
+
+- Fixed handling of texture sizes. Changed the location of application data folder on windows.
+
+- Fixed handling of coordinates in WITH-CLIPPING.
+
+- MESSAGE now accepts multiple arguments.
+
+- KEYSYM-CHAR now returns NIL for characters out the range 1 - 255.
+
+- Added fading arguments to play-music/halt-music.
+
+- RESET-BLEND-MODE renamed to RESET-BLEND.
+
+- Smoothp option now mostly works with filled polygons.
+
+- Minor cleanups and name changes: circles-overlap => circles-overlap-p,
+  point-inside-rectangle => point-inside-rectangle-p, point-in-line => point-in-line-p.
+
+- Optimised GL state handling. Image drawing is a lot faster under certain
+  conditions.
+
+- Added color.lisp, WITH-BLEND now uses COLOR struct instead of a list of rgba
+  values.
+
+- Removed CURRY.
+
+
+
 1.0, July 28 2007
 
 - Numerous bugfixes and little improvements.
@@ -16,7 +45,8 @@
 
 - RELT renamed to RANDOM-ELEMENT.
 
-- Added DRAW-ARROW, DRAW-CIRCLE, LOAD-IMAGE-TO-ARRAY, SCREEN-TO-ARRAY, IMAGE-FROM-FN.
+- Added DRAW-ARROW, DRAW-CIRCLE, LOAD-IMAGE-TO-ARRAY, SCREEN-TO-ARRAY,
+  IMAGE-FROM-FN.
 
 - Tag thunks must now return only objects of type RESOURCE.
 

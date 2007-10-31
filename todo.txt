@@ -1,8 +1,6 @@
 TODO:
 
 
-For v1.1
-
 - Fix offsets in draw-image.
 
 - Polygon smooth hint?
@@ -13,13 +11,11 @@ For v1.1
 
 - Structured color values.
 
+- Utilities for interfacing with CL-Imago.
 
+- Better drawing primitives. Real lines, complex polygons, start/end args to draw-circle etc.
 
-After v1.1
-
-- Better drawing primitives, real lines, start/end args to draw-circle etc.
-
-- As always, optimise GL state handling.
+- As always, optimise GL state handling. Blitting in batches, possibly VOBs.
 
 - Implement image mirroring, tiles and animation.
 

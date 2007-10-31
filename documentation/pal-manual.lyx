@@ -269,11 +269,11 @@ Opening and closing PAL and handling resources
 \end_layout
 
 \begin_layout Subsection
-Introduction
+Resources
 \end_layout
 
 \begin_layout Subsection
-Functions
+Functions and macros
 \end_layout
 
 \begin_layout Description
@@ -447,7 +447,7 @@ Event handling
 \end_layout
 
 \begin_layout Subsection
-Introduction
+Basics
 \end_layout
 
 \begin_layout Standard
@@ -464,7 +464,7 @@ NOTE: Even if you don't need to use the callback approach it is still necessary
 \end_layout
 
 \begin_layout Subsection
-Functions
+Functions and macros
 \end_layout
 
 \begin_layout Description
@@ -676,7 +676,7 @@ Returns the corresponding Common Lisp character for
 \shape italic
 keysym
 \shape default
-.
+, or NIL if the character is out the ASCII range 1-255.
  
 \end_layout
 
@@ -1761,11 +1761,11 @@ WITH-TRANSFORMATION
 \end_layout
 
 \begin_layout Subsection
-SET-BLEND-MODE
+SET-BLEND
 \end_layout
 
 \begin_layout Subsection
-RESET-BLEND-MODE
+RESET-BLEND
 \end_layout
 
 \begin_layout Subsection
@@ -1971,10 +1971,6 @@ GET-APPLICATION-FOLDER, GET-APPLICATION-FILE
 \end_layout
 
 \begin_layout Subsection
-DATA-PATH
-\end_layout
-
-\begin_layout Subsection
 RANDOMLY
 \end_layout
 
@@ -1988,10 +1984,6 @@ CLAMP
 
 \begin_layout Subsection
 DO-N
-\end_layout
-
-\begin_layout Subsection
-CURRY
 \end_layout
 
 \end_body

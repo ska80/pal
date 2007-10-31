@@ -18,7 +18,7 @@
                                  2)))))
         (pal:set-blend-color 0 0 0 255)
         (pal:draw-text "Hello from PAL" (pal:v+ midpoint (pal:v 5 5)) font)
-        (pal:reset-blend-mode)
+        (pal:reset-blend)
         (pal:draw-text "Hello from PAL" midpoint font)))
     (pal:wait-keypress)))
 

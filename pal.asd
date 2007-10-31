@@ -9,7 +9,7 @@
   ((:file "ffi"
           :depends-on ("package"))
    (:file "color"
-          :depends-on ("package"))
+          :depends-on ("package" "ffi"))
    (:file "vector"
           :depends-on ("pal-macros"))
    (:file "pal-macros"

@@ -121,7 +121,7 @@
       ;; then the sprites, first the shadows
       ;; sorting the sprites and their shadows according to their altitude is left as an exercise to the reader
 
-      (with-blend (:color '(0 0 0 128))
+      (with-blend (:color (color 0 0 0 128))
         (dolist (i *sprites*)
           (with-transformation (:pos (v (alt-of i) (alt-of i)))
             (draw i))))
@@ -148,6 +148,7 @@
 
       (draw-fps) ;; Draw the frames/second counter to the top left corner.
       (draw-text "Press key to select blend-mode:" (v 200 (* 0 (get-font-height))))
-      (draw-text "1=nil 2=:blend 3=:additive" (v 200 (* 1 (get-font-height)))))))
+      (draw-text "1=nil 2=:blend 3=:additive" (v 200 (* 1 (get-font-height))))
+      (draw-text "Press F to fade out the music." (v 200 (* 2 (get-font-height)))))))
 
 ;; (example)

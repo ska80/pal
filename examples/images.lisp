@@ -57,7 +57,7 @@
 
       ;; Press left mousebutton to capture part of the screen as a new cursor.
       ;; Note that altough the allocated images are released when PAL is closed we really should manually release
-      ;; the old cursor image with FREE-RESOURCE if we keep allocating lots of new images.     
+      ;; the old cursor image with FREE-RESOURCE if we keep allocating lots of new images.  
       (when (key-pressed-p :key-mouse-1)
         (set-cursor (image-from-array
                      nil
