@@ -29,9 +29,7 @@
 (defmethod draw ((s sprite))
   (set-blend-color (r-of s) (g-of s) (b-of s) 255)
   (draw-image (tag 'hare)
-              (v- (pos-of s) (v* (v (image-width (tag 'hare))
-                                    (image-height (tag 'hare)))
-                                 (* (scale-of s) .5)))
+              (pos-of s)
               :halign :middle
               :valign :middle
               :scale (scale-of s)
@@ -70,8 +68,8 @@
                      :angle (random 360.0)))
 
     (event-loop ()
-      ;;(+ 1 (v 10 10))
       (draw-rectangle (v 0 0) 800 600 255 255 255 255 :fill (tag 'bg))
+
       (with-blend (:mode *blend-mode*)
         (dolist (i *sprites*)
           (draw i)

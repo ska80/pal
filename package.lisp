@@ -459,5 +459,6 @@
            #:v-dot #:v-magnitude #:v-normalize #:v-distance
            #:v-truncate #:v-direction
            #:closest-point-to-line #:point-in-line-p #:lines-intersection
-           #:distance-from-line #:circle-line-intersection #:point-inside-rectangle-p
+           #:distance-from-line #:circle-line-intersection
+           #:point-inside-rectangle-p #:rectangles-overlap-p
            #:circles-overlap-p #:point-inside-circle-p))

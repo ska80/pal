@@ -515,14 +515,16 @@
       array)))
 
 
-(defunct draw-image (image pos &key angle scale valign halign)
-    (image image vec pos (or boolean number) angle (or boolean number) scale symbol halign symbol valign)
+(defunct draw-image (image pos &key angle scale valign halign vmirror hmirror)
+    (image image vec pos (or boolean number) angle (or boolean number) scale symbol halign symbol valign symbol vmirror symbol hmirror)
   (set-image image)
   (let ((width (image-width image))
         (height (image-height image))
-        (tx2 (pal-ffi:image-tx2 image))
-        (ty2 (pal-ffi:image-ty2 image)))
-    (if (or angle scale valign halign)
+        (tx1 (if hmirror (pal-ffi:image-tx2 image) 0f0))
+        (ty1 (if vmirror (pal-ffi:image-ty2 image) 0f0))
+        (tx2 (if hmirror 0f0 (pal-ffi:image-tx2 image)))
+        (ty2 (if vmirror 0f0 (pal-ffi:image-ty2 image))))
+   (if (or angle scale valign halign)
         (with-transformation ()
           (translate pos)
           (when angle
@@ -540,26 +542,26 @@
                      (:middle (- (/ height 2f0)))
                      (otherwise 0f0))))
             (with-gl pal-ffi:+gl-quads+
-              (pal-ffi:gl-tex-coord2f 0f0 0f0)
+              (pal-ffi:gl-tex-coord2f tx1 ty1)
               (pal-ffi:gl-vertex2f x y)
-              (pal-ffi:gl-tex-coord2f tx2 0f0)
+              (pal-ffi:gl-tex-coord2f tx2 ty1)
               (pal-ffi:gl-vertex2f (+ x width) y)
               (pal-ffi:gl-tex-coord2f tx2 ty2)
               (pal-ffi:gl-vertex2f (+ x width) (+ y height))
-              (pal-ffi:gl-tex-coord2f 0f0 ty2)
+              (pal-ffi:gl-tex-coord2f tx1 ty2)
               (pal-ffi:gl-vertex2f x (+ y height)))))
         (let* ((x (vx pos))
                (y (vy pos))
                (width (+ x width))
                (height (+ y height)))
           (with-gl pal-ffi:+gl-quads+
-            (pal-ffi:gl-tex-coord2f 0f0 0f0)
+            (pal-ffi:gl-tex-coord2f tx1 ty1)
             (pal-ffi:gl-vertex2f x y)
-            (pal-ffi:gl-tex-coord2f tx2 0f0)
+            (pal-ffi:gl-tex-coord2f tx2 ty1)
             (pal-ffi:gl-vertex2f width y)
             (pal-ffi:gl-tex-coord2f tx2 ty2)
             (pal-ffi:gl-vertex2f width height)
-            (pal-ffi:gl-tex-coord2f 0f0 ty2)
+            (pal-ffi:gl-tex-coord2f tx1 ty2)
             (pal-ffi:gl-vertex2f x height))))))
 
 
@@ -897,8 +899,8 @@
                                    font
                                    (tag 'default-font)))))
 
-(defun draw-fps ()
-  (draw-text (prin1-to-string (get-fps)) (v 0 0)))
+(defun draw-fps (&optional font)
+  (draw-text (prin1-to-string (get-fps)) (v 0 0) font))
 
 (defun message (&rest messages)
   (setf *messages* (append *messages* (list (format nil "~{~S ~}" messages))))
