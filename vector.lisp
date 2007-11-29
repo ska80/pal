@@ -265,7 +265,8 @@
         t nil)))
 
 
-(defun rectangles-overlap-p (a a-width a-height b b-width b-height)
+(defunct rectangles-overlap-p (a a-width a-height b b-width b-height)
+    (vec a component a-width component a-height vec b component b-width component b-height)
   (let ((ax (vx a))
         (ay (vy a))
         (bx (vx b))

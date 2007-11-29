@@ -435,6 +435,7 @@
 (defvar *resources* () "List of currently loaded resources.")
 
 (defstruct image
+  (file "")
   (texture 0 :type u11)                 ; "GL texture id for image."
   (texture-width 0 :type u11) ; "Actual (rounded up to power of two) width of texture."
   (texture-height 0 :type u11) ; "Actual (rounded up to power of two) height of texture."
@@ -444,14 +445,17 @@
   (width 0 :type u11))             ; "Width of textures visible part."
 
 (defstruct font
+  (file "")
   (image nil :type (or boolean image))
   (glyphs nil :type (or boolean (simple-vector 255)))
   (height 0 :type u11))
 
 (defstruct music
+  file
   music)
 
 (defstruct sample
+  file
   chunk)
 
 

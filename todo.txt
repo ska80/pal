@@ -1,11 +1,12 @@
 TODO:
 
+- Make sure resources are loaded only once.
 
 - Fix offsets in draw-image.
 
 - Polygon smooth hint?
 
-- Add align, scale and angle options to DRAW-IMAGE*.
+- Add align, scale, mirror and angle options to DRAW-IMAGE*.
 
 - Better clipping.
 
@@ -17,7 +18,7 @@ TODO:
 
 - As always, optimise GL state handling. Blitting in batches, possibly VOBs.
 
-- Implement image mirroring, tiles and animation.
+- Implement "tiles" and animation.
 
 - Box/box/line/circle etc. overlap functions, faster v-dist.
 

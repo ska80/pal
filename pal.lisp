@@ -158,8 +158,9 @@
   "Find a FILE from the search paths."
   (let ((result nil))
     (dolist (i *data-paths* result)
-      (when (probe-file (merge-pathnames file i))
-        (setf result (namestring (merge-pathnames file i)))))
+      (let ((truename (probe-file (merge-pathnames file i))))
+        (when truename
+          (setf result (namestring (merge-pathnames truename i))))))
     (if result
         result
         (error "Data file not found: ~a" file))))
@@ -524,7 +525,7 @@
         (ty1 (if vmirror (pal-ffi:image-ty2 image) 0f0))
         (tx2 (if hmirror 0f0 (pal-ffi:image-tx2 image)))
         (ty2 (if vmirror 0f0 (pal-ffi:image-ty2 image))))
-   (if (or angle scale valign halign)
+    (if (or angle scale valign halign)
         (with-transformation ()
           (translate pos)
           (when angle
