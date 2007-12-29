@@ -452,6 +452,7 @@
            #:halt-music
 
            #:color #:color-r #:color-g #:color-b #:color-a #:random-color
+           #:+black+ #:+white+ #:+gray+ #:+dark-gray+ #:+light-gray+
 
            #:v #:vec #:copy-vec #:angle-v #:v-angle #:vx #:vy
            #:v= #:v-round #:v-floor #:v-random

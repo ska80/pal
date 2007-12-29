@@ -2,7 +2,7 @@ TODO:
 
 - Make sure resources are loaded only once.
 
-- Fix offsets in draw-image.
+- Fix offsets in draw-image (shouldn't need transformations).
 
 - Polygon smooth hint?
 

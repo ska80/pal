@@ -14,17 +14,18 @@
                                    (truncate (+ 127 (* 128 (cos (/ (- x y) 10))))))))
   ;; IMAGE-FROM-ARRAY builds an image from a 2d array of (list r g b &optional a)
   ;; Try setting the SMOOTHP parameter to T and see what happens.
-  image-2 (image-from-array nil #2A(((255 255 255 128) (0 0 0) (255 255 255))
-                                    ((255 255 255) (255 255 0) (255 255 255))
-                                    ((255 255 255) (0 0 0) (255 255 255 128))))
+  image-2 (image-from-array #2A(((255 255 255 128) (0 0 0) (255 255 255))
+                                ((255 255 255) (255 255 0) (255 255 255))
+                                ((255 255 255) (0 0 0) (255 255 255 128)))
+                            nil)
 
   ;; LOAD-IMAGE-TO-ARRAY does exactly what it says. Let's load the plane image and randomize the alpha values a bit.
-  image-3 (image-from-array nil
-                            (let ((image (load-image-to-array "lego-plane.png")))
+  image-3 (image-from-array (let ((image (load-image-to-array "lego-plane.png")))
                               (do-n (x (array-dimension image 0) y (array-dimension image 1))
                                 (when (> (fourth (aref image x y)) 200)
                                   (setf (fourth (aref image x y)) (+ (random 128) 127))))
-                              image)))
+                              image)
+                            nil))
 
 
 
@@ -57,8 +58,8 @@
 
       ;; Press left mousebutton to capture part of the screen as a new cursor.
       ;; Note that altough the allocated images are released when PAL is closed we really should manually release
-      ;; the old cursor image with FREE-RESOURCE if we keep allocating lots of new images.  
+      ;; the old cursor image with FREE-RESOURCE if we keep allocating lots of new images.
       (when (key-pressed-p :key-mouse-1)
         (set-cursor (image-from-array
-                     nil
-                     (screen-to-array (get-mouse-pos) 128 128)))))))
+                     (screen-to-array (get-mouse-pos) 128 128)
+                     nil))))))

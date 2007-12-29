@@ -16,7 +16,7 @@
                               (/ (- (pal:get-screen-height)
                                     (pal:get-font-height font))
                                  2)))))
-        (pal:set-blend-color 0 0 0 255)
+        (pal:set-blend-color (pal:color 0 0 0 255))
         (pal:draw-text "Hello from PAL" (pal:v+ midpoint (pal:v 5 5)) font)
         (pal:reset-blend)
         (pal:draw-text "Hello from PAL" midpoint font)))
@@ -28,7 +28,7 @@
 (defun hello-2 ()
   (pal:with-pal (:fps 10000)
     (let ((angle 0f0))
-      (pal:set-blend-color 0 255 0 255)
+      (pal:set-blend-color (pal:color 0 255 0 255))
       (pal:event-loop ()
         (pal:draw-rectangle (pal:v 0 0)
                             (pal:get-screen-width) (pal:get-screen-height)
@@ -42,7 +42,7 @@
 (defun hello-3 ()
   (pal:with-pal (:fps 10000)
     (pal:event-loop ()
-      (pal:clear-screen 0 0 0)
+      (pal:clear-screen pal:+black+)
       (loop for x from 0 to 800 by (pal:get-text-size "Hello from PAL")
          do
          (loop for y from 20 to 600 by 10

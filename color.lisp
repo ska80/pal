@@ -19,3 +19,12 @@
 
 (defun random-color ()
   (color (random 255) (random 255) (random 255) (random 255)))
+
+
+
+
+(defparameter +black+ (color 0 0 0))
+(defparameter +gray+ (color 128 128 128))
+(defparameter +light-gray+ (color 200 200 200))
+(defparameter +dark-gray+ (color 64 64 64))
+(defparameter +white+ (color 255 255 255))

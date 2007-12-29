@@ -90,7 +90,7 @@
 (defmacro with-default-settings (&body body)
   "Evaluate BODY with default transformations and blend settings."
   `(with-transformation ()
-     (with-blend (:mode :blend :color (color 255 255 255 255))
+     (with-blend (:mode :blend :color +white+)
        (pal-ffi:gl-load-identity)
        ,@body)))
 
@@ -103,7 +103,7 @@
      ,(unless (eq mode t)
               `(set-blend-mode ,mode))
      ,(when color
-            `(set-blend-color (color-r ,color) (color-g ,color) (color-b ,color) (color-a ,color)))
+            `(set-blend-color ,color))
      (prog1 (progn
               ,@body)
        (close-quads)
@@ -152,7 +152,7 @@
      (close-quads)
      (pal-ffi:gl-push-attrib (logior pal-ffi:+gl-current-bit+ pal-ffi:+gl-line-bit+ pal-ffi:+gl-enable-bit+))
      (pal-ffi:gl-disable pal-ffi:+gl-texture-2d+)
-     (set-blend-color ,r ,g ,b ,a)
+     (set-blend-color (color ,r ,g ,b ,a))
      (pal-ffi:gl-line-width ,size)
      (if ,smoothp
          (pal-ffi:gl-enable pal-ffi:+gl-line-smooth+)
