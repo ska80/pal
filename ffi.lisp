@@ -447,7 +447,7 @@
 (defstruct font
   (file nil)
   (image nil :type (or boolean image))
-  (glyphs nil :type (or boolean (simple-vector 255)))
+  (glyphs nil :type (or boolean (simple-vector 256)))
   (height 0 :type u11))
 
 (defstruct music
