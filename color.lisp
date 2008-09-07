@@ -28,3 +28,6 @@
 (defparameter +light-gray+ (color 200 200 200))
 (defparameter +dark-gray+ (color 64 64 64))
 (defparameter +white+ (color 255 255 255))
+(defparameter +light-green+ (color 50 255 50))
+(defparameter +light-blue+ (color 50 50 255))
+(defparameter +red+ (color 255 20 20))

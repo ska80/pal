@@ -17,9 +17,7 @@
   ((pos :accessor pos-of :initarg :pos :initform (v 0 0))
    (vel :accessor vel-of :initarg :vel :initform (v 0 0))
    (angle :accessor angle-of :initarg :angle :initform 0)
-   (r :accessor r-of :initarg :r)
-   (g :accessor g-of :initarg :g)
-   (b :accessor b-of :initarg :b)
+   (color :accessor color-of :initarg :color)
    (scale :accessor scale-of :initform 1 :initarg :scale)
    (scaled :accessor scaled-of :initarg :scaled)))
 
@@ -27,7 +25,7 @@
   (push sprite *sprites*))
 
 (defmethod draw ((s sprite))
-  (set-blend-color (r-of s) (g-of s) (b-of s) 255)
+  (set-blend-color (color-of s))
   (draw-image (tag 'hare)
               (pos-of s)
               :halign :middle
@@ -59,9 +57,9 @@
       (make-instance 'sprite
                      :scaled (- (random .1) .05)
                      :scale (+ (random 1.5) .5)
-                     :r (random 255)
-                     :g (random 255)
-                     :b (random 255)
+                     :color (color (random 255)
+                                   (random 255)
+                                   (random 255))
                      :pos (v (random (get-screen-width))
                              (random (get-screen-height)))
                      :vel (v-random 3.0)

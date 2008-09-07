@@ -453,6 +453,7 @@
 
            #:color #:color-r #:color-g #:color-b #:color-a #:random-color
            #:+black+ #:+white+ #:+gray+ #:+dark-gray+ #:+light-gray+
+           #:+light-green+ #:+light-blue+ #:+red+
 
            #:v #:vec #:copy-vec #:angle-v #:v-angle #:vx #:vy
            #:v= #:v-round #:v-floor #:v-random
