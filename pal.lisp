@@ -8,7 +8,7 @@
                                              :host (pathname-host *load-pathname*)
                                              :device (pathname-device *load-pathname*)))
 
-(defvar *messages* nil "List of messages draw on screen with MESSAGE.")
+(defvar *messages* nil "List of messages drawn on screen with MESSAGE.")
 (defvar *pal-running* nil "T if PAL is already running.")
 (defvar *title* "" "PAL windows title. Also used for creating the path to applications data directory.")
 (defvar *ticks* 0)
@@ -18,7 +18,7 @@
 (defvar *delay* 0)
 (defvar *max-fps* 0)
 (defvar *data-paths* nil)
-(defvar *pressed-keys* nil)
+(defvar *pressed-keys* (make-hash-table))
 (defvar *width* 0)
 (defvar *height* 0)
 (defvar *cursor* nil)
