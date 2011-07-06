@@ -22,24 +22,31 @@
 ;;;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ;;;; SOFTWARE.
 
-(declaim (optimize (speed 3)
-                   (safety 1)))
-
 (in-package #:net.common-lisp.pal-ffi)
 
+(declaim
+ #+pal-debug
+ (optimize debug (speed 1))
+ #-pal-debug
+ (optimize speed (safety 1)))
+
 (cffi:define-foreign-library sdl
-  (:windows "SDL")
+  (:darwin (:framework "SDL"))
+  (:windows "SDL.dll")
   (:unix (:or "libSDL-1.2.so.0" "libSDL-1.2.so")))
 
 (cffi:define-foreign-library sdl-mixer
-  (:windows "SDL_mixer")
+  (:darwin (:framework "SDL_mixer"))
+  (:windows "SDL_mixer.dll")
   (:unix (:or "libSDL_mixer-1.2.so.0" "libSDL_mixer-1.2.so")))
 
 (cffi:define-foreign-library sdl-image
-  (:windows "SDL_image")
+  (:darwin (:framework "SDL_image"))
+  (:windows "SDL_image.dll")
   (:unix (:or "libSDL_image-1.2.so.0" "libSDL_image-1.2.so")))
 
 (cffi:define-foreign-library opengl
+  (:darwin (:framework "OpenGL"))
   (:windows "opengl32.dll")
   (:unix (:or "libGL.so")))
 

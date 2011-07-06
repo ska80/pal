@@ -22,11 +22,35 @@
 ;;;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ;;;; SOFTWARE.
 
-(declaim (optimize (speed 3)
-                   (safety 1)))
-
 (in-package #:net.common-lisp.pal)
 
+(declaim
+ #+pal-debug
+ (optimize debug (speed 1))
+ #-pal-debug
+ (optimize speed (safety 1)))
+
+(defmacro define-inline (name args &body body)
+  `(progn
+     #-pal-debug
+     (declaim (inline ,name))
+     (defun ,name ,args
+       ,@body)))
+
+(defmacro define-speedy (name args &body body)
+  `(progn
+     #-pal-debug
+     (declaim (inline ,name))
+     (defun ,name ,args
+       #-pal-debug
+       (declare (optimize speed))
+       ,@body)))
+
+(defmacro define-careful (name args &body body)
+  `(progn
+     (defun ,name ,args
+       (declare (optimize safety #+pal-debug debug))
+       ,@body)))
 
 ;; TAGs are lazily evaluated thunks that load some resource (image, font etc.) when called with (TAG tag-name).
 ;; Their values are cached and automatically cleaned when resource is freed.

@@ -22,11 +22,13 @@
 ;;;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ;;;; SOFTWARE.
 
-(declaim (optimize (speed 3)
-                   (safety 1)))
-
 (in-package #:net.common-lisp.pal)
 
+(declaim
+ #+pal-debug
+ (optimize debug (speed 1))
+ #-pal-debug
+ (optimize speed (safety 1)))
 
 (deftype component () 'single-float)
 

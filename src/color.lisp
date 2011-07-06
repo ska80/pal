@@ -24,16 +24,17 @@
 
 (in-package #:net.common-lisp.pal)
 
-(declaim (optimize (speed 3)
-                   (safety 1)))
-
+(declaim
+ #+pal-debug
+ (optimize debug (speed 1))
+ #-pal-debug
+ (optimize speed (safety 1)))
 
 (defstruct color
   (r 0 :type u8)
   (g 0 :type u8)
   (b 0 :type u8)
   (a 0 :type u8))
-
 
 (declaim (inline color))
 (defun color (r g b &optional (a 255))

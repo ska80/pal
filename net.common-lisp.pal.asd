@@ -24,6 +24,13 @@
 
 (in-package #:cl-user)
 
+#+pal-debug
+(progn
+  (pushnew :pal-trace *features*)
+  (declaim (optimize debug (speed 1))))
+#-pal-debug
+(declaim (optimize speed (safety 1)))
+
 (defpackage #:net.common-lisp.pal-asd
   (:use #:cl))
 
