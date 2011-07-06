@@ -1,8 +1,33 @@
-(in-package #:CL-USER)
+;;;; -*- Mode:Lisp; Syntax:ANSI-Common-Lisp; -*-
+;;;;
+;;;; Pixel Art Library is published under the MIT license
+;;;;
+;;;; Copyright (c) 2006 Tomi Neste
+;;;;
+;;;; Permission is hereby granted, free of charge, to any person obtaining a copy of
+;;;; this software and associated documentation files (the "Software"), to deal in
+;;;; the Software without restriction, including without limitation the rights to
+;;;; use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+;;;; of the Software, and to permit persons to whom the Software is furnished to do
+;;;; so, subject to the following conditions:
+;;;;
+;;;; The above copyright notice and this permission notice shall be included in all
+;;;; copies or substantial portions of the Software.
+;;;;
+;;;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;;;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;;;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;;;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;;;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+;;;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+;;;; SOFTWARE.
 
-(defpackage #:pal-ffi
-  (:use :common-lisp)
-  (:export #:+NO-EVENT+
+(in-package #:cl-user)
+
+(defpackage #:net.common-lisp.pal-ffi
+  (:nicknames #:pal-ffi)
+  (:use #:cl)
+  (:export #:+no-event+
            #:+gl-line-smooth+
            #:+gl-polygon-smooth+
            #:fade-out-music
@@ -48,15 +73,15 @@
            #:u8
            #:u11
            #:u16
-           #:+gl-COLOR-BUFFER-BIT+
-           #:+gl-CURRENT-BIT+
-           #:+gl-DEPTH-BUFFER-BIT+
-           #:+gl-ENABLE-BIT+
-           #:+gl-LINE-BIT+
+           #:+gl-color-buffer-bit+
+           #:+gl-current-bit+
+           #:+gl-depth-buffer-bit+
+           #:+gl-enable-bit+
+           #:+gl-line-bit+
            #:gl-push-attrib
            #:gl-pop-attrib
-           #:+gl-ALPHA-TEST+
-           #:+gl-ALPHA-TEST-FUNC+
+           #:+gl-alpha-test+
+           #:+gl-alpha-test-func+
            #:+gl-one+
            #:+gl-zero+
            #:+gl-greater+
@@ -92,10 +117,10 @@
            #:+gl-quads+
            #:+gl-src-alpha+
            #:+gl-dst-alpha+
-           #:+gl-ONE-MINUS-DST-ALPHA+
-           #:+gl-ONE-MINUS-DST-COLOR+
-           #:+gl-ONE-MINUS-SRC-ALPHA+
-           #:+gl-ONE-MINUS-SRC-COLOR+
+           #:+gl-one-minus-dst-alpha+
+           #:+gl-one-minus-dst-color+
+           #:+gl-one-minus-src-alpha+
+           #:+gl-one-minus-src-color+
            #:gl-blendfunc
            #:gl-begin
            #:gl-color4ub
@@ -157,207 +182,207 @@
            #:set-framerate
            #:framerate-delay
            #:framerate-manager
-           #:SRC
-           #:+NO-FADING+
-           #:RESIZE-EVENT
-           #:QUIT-TTF
-           #:UNICODE
-           #:+BUTTON-MIDDLE+
-           #:MOD
-           #:+KEY-DOWN-EVENT+
-           #:WARP-MOUSE
-           #:KEYBOARD-EVENT
-           #:+MUS-WAV+
-           #:SCREEN
-           #:+INIT-NOPARACHUTE+
-           #:BITSPERPIXEL
-           #:RW-FROM-FILE
-           #:GLOSS
-           #:RECTANGLE
-           #:+YV12-OVERLAY+
-           #:ENABLE-KEYREPEAT
-           #:+ANYFORMAT+
-           #:+CHANNELS+
-           #:RECT
-           #:QUIT-EVENT
-           #:+ASYNCBLIT+
-           #:SURFACE
-           #:+MUS-MOD+
-           #:UNUSED1
-           #:VIDEO-MODE-OK
-           #:GET-KEY-NAME
-           #:H
-           #:+INIT-JOYSTICK+
-           #:KEY
-           #:BPP
-           #:MODE
-           #:SET-CAPTION
-           #:SET-ALPHA
-           #:INIT-SUBSYSTEM
-           #:FILL-RECT
-           #:YREL
-           #:ICON
-           #:GET-MOUSE-STATE
-           #:SRCRECT
-           #:+SRCCOLORKEY+
-           #:GMASK
-           #:XREL
-           #:+OPENGLBLIT+
-           #:TITLE
-           #:GSHIFT
-           #:FLIP
-           #:MOUSE-MOTION-EVENT
-           #:FMT
-           #:WHICH
-           #:CHANNELS
-           #:BYTESPERPIXEL
-           #:+MUS-OGG+
-           #:FORMAT-VERSION
-           #:+INIT-TIMER+
-           #:EVENT
-           #:ALOSS
-           #:+FULLSCREEN+
-           #:+AUDIO-S16+
-           #:POLL-EVENT
-           #:+AUDIO-S16MSB+
-           #:FLAG
-           #:+INIT-CDROM+
-           #:+INIT-EVERYTHING+
-           #:STATE
-           #:+MAX-VALUE+
-           #:+MOUSE-MOTION-EVENT+
-           #:LOCKED
-           #:HALT-CHANNEL
-           #:+MUS-MID+
-           #:+FADING-OUT+
-           #:RSHIFT
-           #:+AUDIO-S16LSB+
-           #:+NOFRAME+
-           #:MAP-RBG
-           #:RLOSS
-           #:+PREALLOC+
-           #:HEIGHT
-           #:QUIT-SUBSYSTEM
-           #:ALPHA
-           #:+TTF-STYLE-UNDERLINE+
-           #:CONVERT-SURFACE
-           #:DSTRECT
-           #:INIT-TTF
-           #:PITCH
-           #:TOGGLE
-           #:DISPLAY-FORMAT
-           #:W
-           #:SDL-KEY
-           #:GAIN
-           #:+INIT-AUDIO+
-           #:GET-EVENT
-           #:WIDTH
-           #:PALETTE
-           #:+OPENGL+
-           #:+RESIZE-EVENT+
-           #:+TTF-STYLE-NORMAL+
-           #:CLIP-RECT
-           #:LOAD-IMAGE
-           #:+SRCALPHA+
-           #:+BUTTON-LEFT+
-           #:+INIT-VIDEO+
-           #:DISPLAY-FORMAT-ALPHA
-           #:+MOUSE-BUTTON-DOWN-EVENT+
-           #:FLAGS
-           #:+CHANNEL-POST+
-           #:MS
-           #:+EXPOSE-EVENT+
-           #:INIT
-           #:GET-CLIP-RECT
-           #:DST
-           #:+MUS-MP3+
-           #:UNUSED
-           #:+INIT-EVENTTHREAD+
-           #:ACTIVE-EVENT
-           #:X
-           #:+RESIZABLE+
-           #:SYM
-           #:+MUS-NONE+
-           #:BLIT
+           #:src
+           #:+no-fading+
+           #:resize-event
+           #:quit-ttf
+           #:unicode
+           #:+button-middle+
+           #:mod
+           #:+key-down-event+
+           #:warp-mouse
+           #:keyboard-event
+           #:+mus-wav+
+           #:screen
+           #:+init-noparachute+
+           #:bitsperpixel
+           #:rw-from-file
+           #:gloss
+           #:rectangle
+           #:+yv12-overlay+
+           #:enable-keyrepeat
+           #:+anyformat+
+           #:+channels+
+           #:rect
+           #:quit-event
+           #:+asyncblit+
+           #:surface
+           #:+mus-mod+
+           #:unused1
+           #:video-mode-ok
+           #:get-key-name
+           #:h
+           #:+init-joystick+
+           #:key
+           #:bpp
+           #:mode
+           #:set-caption
+           #:set-alpha
+           #:init-subsystem
+           #:fill-rect
+           #:yrel
+           #:icon
+           #:get-mouse-state
+           #:srcrect
+           #:+srccolorkey+
+           #:gmask
+           #:xrel
+           #:+openglblit+
+           #:title
+           #:gshift
+           #:flip
+           #:mouse-motion-event
+           #:fmt
+           #:which
+           #:channels
+           #:bytesperpixel
+           #:+mus-ogg+
+           #:format-version
+           #:+init-timer+
+           #:event
+           #:aloss
+           #:+fullscreen+
+           #:+audio-s16+
+           #:poll-event
+           #:+audio-s16msb+
+           #:flag
+           #:+init-cdrom+
+           #:+init-everything+
+           #:state
+           #:+max-value+
+           #:+mouse-motion-event+
+           #:locked
+           #:halt-channel
+           #:+mus-mid+
+           #:+fading-out+
+           #:rshift
+           #:+audio-s16lsb+
+           #:+noframe+
+           #:map-rbg
+           #:rloss
+           #:+prealloc+
+           #:height
+           #:quit-subsystem
+           #:alpha
+           #:+ttf-style-underline+
+           #:convert-surface
+           #:dstrect
+           #:init-ttf
+           #:pitch
+           #:toggle
+           #:display-format
+           #:w
+           #:sdl-key
+           #:gain
+           #:+init-audio+
+           #:get-event
+           #:width
+           #:palette
+           #:+opengl+
+           #:+resize-event+
+           #:+ttf-style-normal+
+           #:clip-rect
+           #:load-image
+           #:+srcalpha+
+           #:+button-left+
+           #:+init-video+
+           #:display-format-alpha
+           #:+mouse-button-down-event+
+           #:flags
+           #:+channel-post+
+           #:ms
+           #:+expose-event+
+           #:init
+           #:get-clip-rect
+           #:dst
+           #:+mus-mp3+
+           #:unused
+           #:+init-eventthread+
+           #:active-event
+           #:x
+           #:+resizable+
+           #:sym
+           #:+mus-none+
+           #:blit
            #:free-all-resources
            #:free-resource
-           #:+FADING-IN+
-           #:+SWSURFACE+
-           #:FILE
-           #:BMASK
-           #:+ACTIVE-EVENT+
-           #:+KEY-UP-EVENT+
-           #:FREQUENCY
-           #:+BUTTON-WHEELDOWN+
-           #:SET-VIDEO-MODE
-           #:+QUIT-EVENT+
-           #:OFFSET
-           #:SHOW-CURSOR
-           #:ASHIFT
-           #:+DEFAULT-CHANNELS+
-           #:+YUY2-OVERLAY+
-           #:A
-           #:+MUS-CMD+
-           #:+AUDIO-S8+
-           #:COLORKEY
-           #:+HWPALETTE+
-           #:+HWACCEL+
-           #:+TTF-STYLE-BOLD+
-           #:GET-TICK
-           #:FONT
-           #:Y
-           #:SET-COLOR-KEY
-           #:PIXELFORMAT
-           #:UPDATE-RECT
-           #:CHANNEL
-           #:+DOUBLEBUF+
-           #:REFCOUNT
-           #:+BUTTON-WHEELUP+
-           #:CHUNKSIZE
-           #:INTERVAL
-           #:+BUTTON-RIGHT+
-           #:QUIT
-           #:+IYUV-OVERLAY+
-           #:R
-           #:+RLEACCEL+
+           #:+fading-in+
+           #:+swsurface+
+           #:file
+           #:bmask
+           #:+active-event+
+           #:+key-up-event+
+           #:frequency
+           #:+button-wheeldown+
+           #:set-video-mode
+           #:+quit-event+
+           #:offset
+           #:show-cursor
+           #:ashift
+           #:+default-channels+
+           #:+yuy2-overlay+
+           #:a
+           #:+mus-cmd+
+           #:+audio-s8+
+           #:colorkey
+           #:+hwpalette+
+           #:+hwaccel+
+           #:+ttf-style-bold+
+           #:get-tick
+           #:font
+           #:y
+           #:set-color-key
+           #:pixelformat
+           #:update-rect
+           #:channel
+           #:+doublebuf+
+           #:refcount
+           #:+button-wheelup+
+           #:chunksize
+           #:interval
+           #:+button-right+
+           #:quit
+           #:+iyuv-overlay+
+           #:r
+           #:+rleaccel+
            #:surface-map-rgba
            #:surface-map-rgb
            #:create-rgb-surface
            #:create-rgb-surface-from
-           #:G
+           #:g
            #:sdl-mod
-           #:HWDATA
-           #:+UYVY-OVERLAY+
-           #:GET-RELATIVE-MOUSE-STATE
-           #:PIXELS
-           #:+MOUSE-BUTTON-UP-EVENT+
-           #:BSHIFT
-           #:DELAY
-           #:BLOSS
-           #:CHUNK
-           #:COLOR
-           #:SCANCODE
-           #:+YVYU-OVERLAY+
+           #:hwdata
+           #:+uyvy-overlay+
+           #:get-relative-mouse-state
+           #:pixels
+           #:+mouse-button-up-event+
+           #:bshift
+           #:delay
+           #:bloss
+           #:chunk
+           #:color
+           #:scancode
+           #:+yvyu-overlay+
            #:font-image
            #:font-glyphs
            #:font-height
-           #:B
-           #:+DEFAULT-FREQUENCY+
-           #:MAP-RGBA
-           #:RMASK
-           #:OPEN-AUDIO
-           #:CLOSE-AUDIO
-           #:MAP-RGB
+           #:b
+           #:+default-frequency+
+           #:map-rgba
+           #:rmask
+           #:open-audio
+           #:close-audio
+           #:map-rgb
            #:image-p
            #:font-p
-           #:AMASK
-           #:MOUSE-BUTTON-EVENT
-           #:KEYSYM))
+           #:amask
+           #:mouse-button-event
+           #:keysym))
 
-
-(defpackage #:pal
-  (:use :common-lisp)
-  (:import-from :pal-ffi
+(defpackage #:net.common-lisp.pal
+  (:nicknames #:pal)
+  (:use #:cl)
+  (:import-from #:net.common-lisp.pal-ffi
                 #:register-resource #:load-foreign-libraries
                 #:image-p #:image #:font #:font-p #:sample #:music #:sample-p #:music-p #:resource #:resource-p
                 #:image-width #:image-height
