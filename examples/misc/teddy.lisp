@@ -1,5 +1,5 @@
 (defpackage :pal-example
-  (:use :cl :pal))
+  (:use :cl :net.common-lisp.pal))
 (in-package :pal-example)
 
 
@@ -15,7 +15,7 @@
              teddy (load-image "yellow-teddy.png" t)
              tile (load-image "ground.png")
              cursor (load-image "cursor.png")
-             engine (load-sample "Flight.wav")
+             engine (load-sample "flight.wav")
 
              ;; djbierman-hrrrr.mp3 is licensed under
              ;; Creative Commons License Deed
@@ -80,7 +80,7 @@
 
 
 (defun example ()
-  (with-pal (:fullscreenp nil :width 800 :height 600 :fps 60 :paths (merge-pathnames "examples/" pal::*pal-directory*))
+  (with-pal (:fullscreenp nil :width 800 :height 600 :fps 60 :paths "resources/")
     ;; inits PAL, the args used are the default values.
     ;; PATHS is a pathname or list of pathnames that PAL uses to find the resource files loaded with LOAD-* functions.
     ;; By default PATHS contains the PAL source directory and value of *default-pathname-defaults*

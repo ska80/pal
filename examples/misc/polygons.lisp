@@ -1,9 +1,9 @@
 (defpackage poly-tests
-  (:use :cl :pal))
+  (:use :cl :net.common-lisp.pal))
 (in-package :poly-tests)
 
 
-(with-pal (:paths (merge-pathnames "examples/" pal::*pal-directory*))
+(with-pal (:paths "resources/")
   (let ((angle 0)
         (grid (load-image "bg2.png"))
         (plane (load-image "lego-plane.png" t))

@@ -8,6 +8,4 @@
    (:file "resources" :depends-on ("package"))
    (:file "particles" :depends-on ("package"))
    (:file "package"))
-  :depends-on ("pal"))
-
-
+  :depends-on (:net.common-lisp.pal))

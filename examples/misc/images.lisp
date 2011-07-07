@@ -1,5 +1,5 @@
 (defpackage :image-tests
-  (:use :cl :pal))
+  (:use :cl :net.common-lisp.pal))
 (in-package :image-tests)
 
 
@@ -29,7 +29,7 @@
 
 
 
-(with-pal (:paths (merge-pathnames "examples/" pal::*pal-directory*))
+(with-pal (:paths "resources/")
   (set-cursor (tag 'image-3))
   ;; sets image-3 as a mouse cursor image
   (let ((a 0))

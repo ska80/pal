@@ -1,9 +1,10 @@
 
 ;;; Few very simple example programs.
 
+(in-package #:cl-user)
 
 (defun hello-1 ()
-  (pal:with-pal (:title "Hello!" :paths (merge-pathnames "examples/" pal::*pal-directory*))
+  (pal:with-pal (:title "Hello!" :paths "resources/")
     (print (pal:get-gl-info))
     (let ((font (pal:load-font "georgia")))
       (loop for y from 0 to 300 by 2 do

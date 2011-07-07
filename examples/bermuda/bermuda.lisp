@@ -23,7 +23,7 @@
 
 
 (defun bermuda ()
-  (with-pal (:fullscreenp t :title "Bermuda" :paths "data/")
+  (with-pal (:fullscreenp t :title "Bermuda" :paths "resources/")
     (set-cursor nil)
     (main-loop)))
 

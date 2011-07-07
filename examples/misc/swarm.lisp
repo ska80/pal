@@ -1,5 +1,6 @@
 ;; NOTE: the following example is intentionally slow and somewhat obfuscated
 
+(in-package #:cl-user)
 
 (defun swarm ()
   (let ((vectors nil))

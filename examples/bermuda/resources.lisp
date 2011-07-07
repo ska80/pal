@@ -9,6 +9,6 @@
   land (load-image "mass.png")
   grass (load-image "grass.png")
   explosion-1 (load-sample "explosion2.wav")
-  explosion-2 (load-sample "h_gs1.WAV")
-  shoot (load-sample "Gatling.wav" 8)
+  explosion-2 (load-sample "h_gs1.wav")
+  shoot (load-sample "gatling.wav" 8)
   horizon (load-image "horizon.png"))

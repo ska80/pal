@@ -43,7 +43,7 @@
 (defvar *new-fps* 0)
 (defvar *delay* 0)
 (defvar *max-fps* 0)
-(defvar *data-paths* nil)
+(defvar *data-paths* (list (asdf:system-relative-pathname :net.common-lisp.pal "resources/")))
 (defvar *pressed-keys* (make-hash-table))
 (defvar *width* 0)
 (defvar *height* 0)
@@ -91,7 +91,7 @@
                           pal-ffi:+opengl+))))
     (when (cffi:null-pointer-p surface)
       (error "PAL failed to obtain SDL surface"))
-    (setf *data-paths* nil
+    (setf ;*data-paths* nil
           *max-texture-size* (pal-ffi:gl-get-integer pal-ffi:+gl-max-texture-size+)
           *messages* nil
           *pressed-keys* (make-hash-table :test 'eq)
